@@ -1,6 +1,48 @@
 {% extends 'FinDice/base.html' %}
+
 {% block content %}
-<h2>Welcome, {{ request.user.username }}</h2>
-<p>This is your FinDice dashboard 🔍</p>
-<a href="{% url 'logout' %}">Logout</a>
+  <h1 class="dashboard-title">MoneyParce Dashboard</h1>
+
+  <div style="display: flex; justify-content: space-between; padding: 20px;">
+    <!-- Balance Overview -->
+    <div style="border: 1px solid #ccc; padding: 20px; width: 45%;">
+      <h3>Balance Overview:</h3>
+      <p><strong>Income:</strong> $X,XXX</p>
+      <p><strong>Expenses:</strong> $X,XXX</p>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; flex-direction: column; gap: 10px; width: 45%;">
+      <a href="{% url 'add_transaction' %}" class="dashboard-button">➕ Add Transaction</a>
+      <a href="#" class="dashboard-button">📊 Set Budget</a>
+      <a href="#" class="dashboard-button">📈 View Reports</a>
+      <a href="#" class="dashboard-button">🎯 Set Financial Goal</a>
+    </div>
+  </div>
+
+  <style>
+  .dashboard-title {
+    text-align: center;
+    color: #002147; /* Dark navy blue */
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+  }
+
+  .dashboard-button {
+    background-color: #f2f2f2;
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    text-decoration: none;
+    color: #000;
+    text-align: center;
+    font-weight: bold;
+    transition: background-color 0.2s;
+  }
+
+  .dashboard-button:hover {
+    background-color: #e0e0e0;
+  }
+</style>
 {% endblock %}
+

@@ -1,0 +1,96 @@
+{% extends 'FinDice/base.html' %}
+
+{% block content %}
+  <div class="transactions-container">
+    <h2>📋 Your Transactions</h2>
+
+    {% if transactions %}
+      <table class="transaction-table">
+        <thead>
+          <tr>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for transaction in transactions %}
+          <tr>
+            <td>${{ transaction.amount }}</td>
+            <td>{{ transaction.get_type_display }}</td>
+            <td>{{ transaction.get_category_display }}</td>
+            <td>{{ transaction.description }}</td>
+            <td>{{ transaction.date }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty-message">You haven’t added any transactions yet.</p>
+    {% endif %}
+
+    <a href="/dashboard/" class="back-button">⬅ Back to Dashboard</a>
+  </div>
+
+  <style>
+    .transactions-container {
+      padding: 30px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    h2 {
+      text-align: center;
+      color: #002147;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+    }
+
+    .transaction-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1.2rem;
+      background-color: #f9f9f9;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .transaction-table th {
+      background-color: #002147;
+      color: white;
+      padding: 15px;
+      text-align: left;
+    }
+
+    .transaction-table td {
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .transaction-table tr:nth-child(even) {
+      background-color: #f0f4f8;
+    }
+
+    .back-button {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 10px 20px;
+      background-color: #ccc;
+      color: black;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+
+    .back-button:hover {
+      background-color: #bbb;
+    }
+
+    .empty-message {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #555;
+      margin-top: 20px;
+    }
+  </style>
+{% endblock %}
