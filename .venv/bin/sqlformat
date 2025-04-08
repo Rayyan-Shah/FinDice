@@ -1,4 +1,4 @@
-#!/Users/rayyanshah/Desktop/CS2340/FinDice/.venv/bin/python3
+#!/Users/saadbahlouli/Documents/CS2340/FinDice/.venv/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys
