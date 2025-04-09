@@ -1,7 +1,19 @@
-{% extends 'FinDice/base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
   <div class="form-container">
+    <!-- Popup for success message -->
+    {% if messages %}
+      <div id="popup-wrapper">
+        <div id="popup">
+          {% for message in messages %}
+            <span>{{ message }}</span>
+            <button onclick="closePopup()">✖</button>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
     <div class="top-bar">
       <h2>Add a Transaction</h2>
       <a href="{% url 'view_transactions' %}" class="top-button">📋 View All Transactions</a>
@@ -19,6 +31,7 @@
   </div>
 
   <style>
+    /* Form styling */
     .form-container {
       padding: 40px;
       max-width: 600px;
@@ -109,5 +122,57 @@
     .back-button:hover {
       background-color: #bbb;
     }
+
+    /* Popup styles */
+    #popup-wrapper {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    #popup {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 20px 30px;
+      border: 1px solid #c3e6cb;
+      border-radius: 10px;
+      position: relative;
+      font-size: 1.2rem;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #popup button {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: #155724;
+      cursor: pointer;
+    }
   </style>
+
+  <script>
+    function closePopup() {
+      const wrapper = document.getElementById('popup-wrapper');
+      if (wrapper) {
+        wrapper.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const popup = document.getElementById('popup');
+      const wrapper = document.getElementById('popup-wrapper');
+      if (wrapper && !popup.contains(e.target)) {
+        wrapper.style.display = 'none';
+      }
+    });
+  </script>
 {% endblock %}

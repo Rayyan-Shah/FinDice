@@ -20,5 +20,5 @@ urlpatterns = [
 
     # Transaction Views
     path('transactions/add/', views.add_transaction, name='add_transaction'),
-    path('transactions/view/', views.view_transaction, name='view_transactions'),
+    path('transactions/view/', views.view_transactions, name='view_transactions'),
 ]
