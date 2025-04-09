@@ -12,3 +12,6 @@ __pycache__/
 # Virtual Envs
 .env/
 .venv/
+FinDice/venv/
+*/venv/
+
