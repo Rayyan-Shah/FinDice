@@ -1,13 +1,10 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 
 def home(request):
-    return render(request, 'FinDice/home.html')
+    return render(request, 'home.html')
 
 def register(request):
     if request.method == 'POST':
@@ -18,8 +15,8 @@ def register(request):
             return redirect('dashboard')
     else:
         form = UserCreationForm()
-    return render(request, 'FinDice/register.html', {'form': form})
+    return render(request, 'register.html', {'form': form})
 
 @login_required
 def dashboard(request):
-    return render(request, 'FinDice/dashboard.html')
+    return render(request, 'dashboard.html')
