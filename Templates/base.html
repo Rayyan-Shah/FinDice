@@ -1,15 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinDice</title>
 
+    <!-- Updated Font Awesome for the dice icon -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
+    <!-- Internal CSS -->
+    <style>
+        /* Make the body take full height */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Full viewport height */
+        }
+
+        header {
+            background-color: #002147; /* Deep navy blue */
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        header i {
+            font-size: 2.5rem;
+            color: #f2f2f2;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: #ccc;
+            margin: 20px 0;
+        }
+
+        /* Block content */
+        .content {
+            flex-grow: 1; /* This makes the content take up available space */
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: #002147;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        footer p {
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>FinDice 💰</h1>
+        <!-- Dice icon from Font Awesome -->
+        <i class="fas fa-dice"></i>
+        <!-- Make FinDice clickable and link back to the main page -->
+        <a href="/" style="text-decoration: none; color: white;">
+            <h1>FinDice</h1>
+        </a>
     </header>
-    <hr>
-    {% block content %}{% endblock %}
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2025 CS2340 Group Alexander 2</p>
+    </footer>
 </body>
 </html>

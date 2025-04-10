@@ -1,6 +1,107 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1>Welcome to FinDice 💸</h1>
-<a href="{% url 'login' %}">Login</a> |
-<a href="{% url 'register' %}">Register</a>
+<!-- Hero Section with a Background Banner -->
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="title">Welcome to FinDice 💸</h1>
+    <p class="subtitle">Your Financial Journey Starts Here!</p>
+  </div>
+</section>
+
+<!-- Banner Section with Action Options -->
+<section class="banner">
+  <div class="banner-buttons">
+    <a href="{% url 'login' %}" class="banner-button">Login</a>
+    <a href="{% url 'register' %}" class="banner-button">Register</a>
+    <a href="#" class="banner-button">Learn More</a>
+  </div>
+</section>
+
+
+<style>
+  /* Hero Section Styles */
+  .hero {
+    background: url('https://source.unsplash.com/1600x900/?money') no-repeat center center;
+    background-size: cover;
+    color: black;
+    text-align: center;
+    padding: 100px 20px;
+  }
+
+  .hero-content {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .title {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  .subtitle {
+    font-size: 1.5rem;
+    font-weight: 300;
+  }
+
+  /* Banner Section Styles */
+  .banner {
+    background-color: #002147; /* Deep navy blue */
+    padding: 40px 20px;
+    text-align: center;
+  }
+
+  .banner-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+  }
+
+  .banner-button {
+    background-color: #f2f2f2;
+    color: #002147;
+    padding: 15px 30px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .banner-button:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-3px);
+  }
+
+  .banner-button:active {
+    transform: translateY(1px);
+  }
+
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .hero {
+      padding: 80px 20px;
+    }
+
+    .title {
+      font-size: 3rem;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+    }
+
+    .banner-buttons {
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .banner-button {
+      padding: 12px 25px;
+    }
+  }
+</style>
+
 {% endblock %}
+
