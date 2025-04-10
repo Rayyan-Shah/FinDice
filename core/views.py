@@ -55,3 +55,6 @@ def view_transactions(request):
     print(f"Transactions for {request.user.username}: {transactions.count()} found.")
     return render(request, 'view_transactions.html', {'transactions': transactions})
 
+
+def learn(request):
+    return render(request, 'learn.html')
