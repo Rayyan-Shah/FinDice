@@ -13,11 +13,11 @@
         </div>
       </div>
     {% endif %}
-
-    <div class="top-bar">
+      <div class="top-bar">
       <h2>Add a Transaction</h2>
-      <a href="{% url 'view_transactions' %}" class="top-button">📋 View All Transactions</a>
+
     </div>
+
 
     <form method="POST" class="styled-form">
       {% csrf_token %}

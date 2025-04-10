@@ -30,7 +30,8 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    return render(request, 'dashboard.html')
+    recent_transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+    return render(request, 'dashboard.html', {'recent_transactions': recent_transactions})
 
 @login_required
 def add_transaction(request):
@@ -50,5 +51,7 @@ def add_transaction(request):
 
 @login_required
 def view_transactions(request):
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+    transactions = Transaction.objects.filter(user=request.user).order_by('-date')[:10]
+    print(f"Transactions for {request.user.username}: {transactions.count()} found.")
     return render(request, 'view_transactions.html', {'transactions': transactions})
+
