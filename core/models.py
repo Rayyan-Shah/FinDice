@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.contrib.auth.models import AbstractUser
 class Transaction(models.Model):
     TRANSACTION_TYPES = [
         ('income', 'Income'),
@@ -24,3 +24,25 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.type} - ${self.amount} on {self.date}"
+
+
+
+
+class Budget(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.CharField(max_length=100, blank=True, null=True)  # Optional if you have a category-based budget
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    month = models.DateField()  # You can just store the year and month or use DateField
+
+    def __str__(self):
+        return f"{self.user.username} - {self.category or 'Overall'} - {self.amount}"
+
+
+class FinancialTip(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tip = models.TextField()
+    date_added = models.DateTimeField(auto_now_add=True)
+    category = models.CharField(max_length=100, blank=True, null=True)  # You can categorize tips if needed
+
+    def __str__(self):
+        return f"Tip for {self.user.username}: {self.tip[:30]}..."
