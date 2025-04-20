@@ -4,12 +4,17 @@
   <h1 class="dashboard-title">MoneyParce Dashboard</h1>
 
   <div style="display: flex; justify-content: space-between; padding: 20px;">
-    <!-- Balance Overview -->
-    <div style="border: 1px solid #ccc; padding: 20px; width: 45%;">
-      <h3>Balance Overview:</h3>
-      <p><strong>Income:</strong> ${{ income }}</p>
-      <p><strong>Expenses:</strong> $X,XXX</p>
-    </div>
+<div style="border: 1px solid #ccc; padding: 20px; width: 45%;">
+  <h3>Balance Overview:</h3>
+  <p><strong>Base Income:</strong> ${{ base_income }}</p>
+  <p><strong>Additional Transactions (Income):</strong> ${{ logged_income }}</p>
+  <p><strong>Total Income:</strong> ${{ total_income }}</p>
+    <p><strong>Total Cash:</strong> ${{ cash_total }}</p>
+
+  <p><strong>Total Expenses:</strong> ${{ expense_total }}</p>
+  <p><strong>Net Balance:</strong> ${{ net_total }}</p>
+</div>
+
 
     <!-- Actions -->
     <div style="display: flex; flex-direction: column; gap: 10px; width: 45%;">
@@ -20,7 +25,7 @@
         <a href="{% url 'view_transactions' %}" class="dashboard-button">📋 View All Transactions</a>
 
     </div>
-      </div>
+</div>
 
      <div class="transactions-container">
     <h2>Your Recent Transactions</h2>

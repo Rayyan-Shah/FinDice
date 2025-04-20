@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -30,9 +31,31 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    income = UserProfile.objects.get(user=request.user).income
+    base_income = UserProfile.objects.get(user=request.user).income
     recent_transactions = Transaction.objects.filter(user=request.user).order_by('-date')
-    return render(request, 'dashboard.html', {'recent_transactions': recent_transactions, 'income' : income})
+    # Total income from "income"-type transactions
+    logged_income = Transaction.objects.filter(user=request.user, type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Total expenses
+    expense_total = Transaction.objects.filter(user=request.user, type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    cash_total = Transaction.objects.filter(user=request.user, type='cash').aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Combined total income
+    total_income = base_income + logged_income
+
+    # Net = total income - expenses
+    net_total = total_income - expense_total
+
+    return render(request, 'dashboard.html', {
+        'base_income': base_income,
+        'logged_income': logged_income,
+        'total_income': total_income,
+        'expense_total': expense_total,
+        'net_total': net_total,
+        'cash_total': cash_total,
+        'recent_transactions': recent_transactions,
+    })
+
 
 @login_required
 def add_transaction(request):
