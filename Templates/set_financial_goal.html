@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2 class="section-title">Set Your Financial Goal</h2>
+
+  <form method="POST" class="goal-form">
+    {% csrf_token %}
+    <div class="form-group">
+      {{ form.as_p }}
+    </div>
+    <button type="submit" class="submit-button">Save Goal</button>
+  </form>
+
+  <a href="{% url 'dashboard' %}" class="back-link">
+    <button type="button" class="back-button">← Back to Dashboard</button>
+  </a>
+
+  <style>
+    .goal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .submit-button {
+      background-color: #002147;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .submit-button:hover {
+      background-color: #004080;
+    }
+
+    .back-link {
+      text-align: center;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .back-button {
+      background-color: #ccc;
+      color: black;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+      background-color: #bbb;
+    }
+  </style>
+{% endblock %}

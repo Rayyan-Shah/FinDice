@@ -57,3 +57,30 @@ class CustomUserCreationForm(UserCreationForm):
         UserProfile.objects.create(user=user, income=income)
         return user
 
+
+
+# forms.py
+from django import forms
+from .models import FinancialGoal
+
+class FinancialGoalForm(forms.ModelForm):
+    class Meta:
+        model = FinancialGoal
+        fields = ['target_amount']
+        widgets = {
+            'target_amount': forms.NumberInput(attrs={'placeholder': 'Enter target amount'})
+        }
+
+
+# forms.py
+from django import forms
+from .models import FinancialGoal
+
+class AddToSavingsForm(forms.ModelForm):
+    class Meta:
+        model = FinancialGoal
+        fields = ['current_savings']
+        widgets = {
+            'current_savings': forms.NumberInput(attrs={'placeholder': 'Enter amount to add to savings'})
+        }
+

@@ -1,13 +1,85 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Set Budget</h2>
-  <form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save Budget</button>
-  </form>
-      <br>
-  <a href="{% url 'dashboard' %}" style="text-decoration: none;">
-    <button type="button">← Back to Dashboard</button>
-  </a>
+  <div class="budget-container">
+    <h2 class="section-title">Set Your Budget</h2>
+
+    <form method="POST" class="budget-form">
+      {% csrf_token %}
+      <div class="form-group">
+        {{ form.as_p }}
+      </div>
+      <button type="submit" class="submit-button">Save Budget</button>
+    </form>
+
+    <a href="{% url 'dashboard' %}" class="back-link">
+      <button type="button" class="back-button">← Back to Dashboard</button>
+    </a>
+  </div>
+
+  <style>
+    .budget-container {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 30px;
+      background-color: #f4f6f9;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+      text-align: center;
+      color: #002147;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+
+    .budget-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group p {
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .submit-button {
+      background-color: #002147;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .submit-button:hover {
+      background-color: #004080;
+    }
+
+    .back-link {
+      text-align: center;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .back-button {
+      background-color: #ccc;
+      color: black;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+      background-color: #bbb;
+    }
+  </style>
 {% endblock %}

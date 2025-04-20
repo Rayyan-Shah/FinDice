@@ -67,6 +67,13 @@ def dashboard(request):
     ).aggregate(Sum('amount'))['amount__sum'] or 0
 
     budget_left = budget.amount - monthly_expenses if budget else None
+    try:
+        financial_goal = FinancialGoal.objects.get(user=request.user)
+    except FinancialGoal.DoesNotExist:
+        financial_goal = None  # If the user doesn't have a goal, set it to None
+
+
+
 
     return render(request, 'dashboard.html', {
         'base_income': base_income,
@@ -79,6 +86,7 @@ def dashboard(request):
         'budget': budget,
         'budget_left': budget_left,
         'monthly_expenses': monthly_expenses,
+        'financial_goal': financial_goal,
     })
 
 
@@ -133,4 +141,44 @@ def set_budget(request):
     else:
         form = BudgetForm()
     return render(request, 'set_budget.html', {'form': form})
+
+
+
+# views.py
+from django.shortcuts import render, redirect
+from .forms import FinancialGoalForm
+from .models import FinancialGoal
+
+def set_financial_goal(request):
+    if request.method == 'POST':
+        form = FinancialGoalForm(request.POST)
+        if form.is_valid():
+            financial_goal = form.save(commit=False)
+            financial_goal.user = request.user
+            financial_goal.save()
+            return redirect('dashboard')  # Redirect back to the dashboard
+    else:
+        form = FinancialGoalForm()
+    return render(request, 'set_financial_goal.html', {'form': form})
+
+# views.py
+from django.shortcuts import render, redirect
+from .forms import AddToSavingsForm
+from .models import FinancialGoal
+
+def add_to_savings(request):
+    if request.method == 'POST':
+        form = AddToSavingsForm(request.POST)
+        if form.is_valid():
+            financial_goal = FinancialGoal.objects.get(user=request.user)  # Get the user's financial goal
+            amount_to_add = form.cleaned_data['current_savings']
+            financial_goal.current_savings += amount_to_add  # Add the amount to current savings
+            financial_goal.save()  # Save the updated goal
+            return redirect('dashboard')  # Redirect to the dashboard after adding to savings
+    else:
+        form = AddToSavingsForm()
+    return render(request, 'add_to_savings.html', {'form': form})
+
+
+
 

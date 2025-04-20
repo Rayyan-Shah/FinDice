@@ -46,12 +46,20 @@ class Budget(models.Model):
         return f"{self.user.username} - {self.month.strftime('%B %Y')} Budget"
 
 
+# models.py
+from django.db import models
+from django.contrib.auth.models import User
 
-class FinancialTip(models.Model):
+class FinancialGoal(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    tip = models.TextField()
-    date_added = models.DateTimeField(auto_now_add=True)
-    category = models.CharField(max_length=100, blank=True, null=True)  # You can categorize tips if needed
+    target_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    current_savings = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_progress_percentage(self):
+        if self.target_amount == 0:
+            return 0
+        return (self.current_savings / self.target_amount) * 100
 
     def __str__(self):
-        return f"Tip for {self.user.username}: {self.tip[:30]}..."
+        return f"Goal for {self.user.username}: ${self.target_amount} - Saved: ${self.current_savings}"

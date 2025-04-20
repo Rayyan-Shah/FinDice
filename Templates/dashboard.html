@@ -20,7 +20,8 @@
       <a href="{% url 'add_transaction' %}" class="dashboard-button">➕ Add Transaction</a>
       <a href="{% url 'set_budget' %}" class="dashboard-button">📊 Set Budget</a>
       <a href="#" class="dashboard-button">📈 View Reports</a>
-      <a href="#" class="dashboard-button">🎯 Set Financial Goal</a>
+      <a href="{% url 'set_financial_goal' %}" class="dashboard-button">🎯 Set Financial Goal</a>
+
       <a href="{% url 'view_transactions' %}" class="dashboard-button">📋 View All Transactions</a>
     </div>
   </div>
@@ -42,6 +43,25 @@
       <p>No budget set for this month. <a href="{% url 'set_budget' %}"><strong>Set one now.</strong></a></p>
     </div>
   {% endif %}
+    <br>
+<div style="display: flex; flex-direction: column; gap: 20px; width: 35%; justify-content: center; align-items: center; text-align: center; margin: 0 auto;">
+  <a href="{% url 'add_to_savings' %}" class="dashboard-button">💰 Add to Savings</a>
+</div>
+
+    {% if financial_goal %}
+  <div style="border: 2px solid #002147; border-radius: 10px; padding: 30px; margin-top: 20px; background-color: #f9f9f9; width: 100%; max-width: 95%; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+    <h4 class="section-title">Financial Goal: ${{ financial_goal.target_amount }}</h4>
+    <p><strong>Current Savings:</strong> ${{ financial_goal.current_savings }}</p>
+    <p><strong>Progress:</strong> {{ financial_goal.get_progress_percentage }}%</p>
+
+    <!-- Progress Bar -->
+    <div style="background-color: #ddd; border-radius: 10px; height: 20px; width: 100%; margin-top: 10px;">
+      <div style="background-color: #4caf50; height: 100%; width: {{ financial_goal.get_progress_percentage }}%; border-radius: 10px;"></div>
+    </div>
+  </div>
+{% else %}
+  <p class="empty-message">You haven't set a financial goal yet. <a href="{% url 'set_financial_goal' %}"><strong>Set one now!</strong></a></p>
+{% endif %}
 
   <!-- Recent Transactions Section -->
   <div class="transactions-container">
