@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import TransactionForm
-from .models import Transaction
+from .models import Transaction, UserProfile
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
@@ -30,8 +30,9 @@ def register(request):
 
 @login_required
 def dashboard(request):
+    income = UserProfile.objects.get(user=request.user).income
     recent_transactions = Transaction.objects.filter(user=request.user).order_by('-date')
-    return render(request, 'dashboard.html', {'recent_transactions': recent_transactions})
+    return render(request, 'dashboard.html', {'recent_transactions': recent_transactions, 'income' : income})
 
 @login_required
 def add_transaction(request):
