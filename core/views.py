@@ -106,11 +106,55 @@ def add_transaction(request):
     return render(request, 'add_transaction.html', {'form': form})
 
 
+from django.core.paginator import Paginator
+from django.shortcuts import render
+from .models import Transaction
+from django.shortcuts import render
+from .models import Transaction
+from django.core.paginator import Paginator
+from datetime import datetime
+
 @login_required
 def view_transactions(request):
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')[:10]
-    print(f"Transactions for {request.user.username}: {transactions.count()} found.")
-    return render(request, 'view_transactions.html', {'transactions': transactions})
+    # Get the category filter value from the GET request (default to 'all' if not provided)
+    category_filter = request.GET.get('category', 'all')
+
+    # Get the date filter values from the GET request (default to None if not provided)
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    # Start building the query filter
+    transactions = Transaction.objects.filter(user=request.user)
+
+    # Apply category filter if provided
+    if category_filter != 'all':
+        transactions = transactions.filter(category=category_filter)
+
+    # Apply date range filter if both start_date and end_date are provided
+    if start_date:
+        transactions = transactions.filter(date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__lte=end_date)
+
+    # Sort the transactions by date (most recent first)
+    transactions = transactions.order_by('-date')
+
+    # Paginate the transactions (10 per page)
+    paginator = Paginator(transactions, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Get the list of categories for the dropdown
+    categories = Transaction.CATEGORY_CHOICES
+
+    return render(request, 'view_transactions.html', {
+        'page_obj': page_obj,  # Pass the paginated transactions
+        'categories': categories,  # Pass the categories for the dropdown
+        'category_filter': category_filter,  # Pass the selected category filter
+        'start_date': start_date,  # Pass the selected start date
+        'end_date': end_date,  # Pass the selected end date
+    })
+
 
 
 def learn(request):

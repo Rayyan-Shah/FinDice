@@ -1,22 +1,48 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <div class="transactions-container">
-    <h2>📋 Your Transactions</h2>
+  <h2 class="section-title">View Transactions</h2>
 
-    {% if transactions %}
-      <table class="transaction-table">
-        <thead>
-          <tr>
-            <th>Amount</th>
-            <th>Type</th>
-            <th>Category</th>
-            <th>Description</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for transaction in transactions %}
+  <!-- Category Filter Dropdown -->
+  <form method="get" class="filter-form">
+    <div class="filter-group">
+      <label for="category" class="filter-label">Filter by Category:</label>
+      <select name="category" id="category" onchange="this.form.submit()" class="filter-dropdown">
+        <option value="all" {% if category_filter == 'all' %}selected{% endif %}>All</option>
+        {% for category, label in categories %}
+          <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="filter-group">
+      <label for="start_date" class="filter-label">Start Date:</label>
+      <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="filter-input">
+
+      <label for="end_date" class="filter-label">End Date:</label>
+      <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="filter-input">
+    </div>
+
+    <div class="filter-group">
+      <button type="submit" class="filter-button">Apply Filters</button>
+    </div>
+  </form>
+
+  <!-- Transactions Table -->
+  <div class="table-container">
+    <table class="transaction-table">
+      <thead>
+        <tr>
+          <th>Amount</th>
+          <th>Type</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for transaction in page_obj %}
           <tr>
             <td>${{ transaction.amount }}</td>
             <td>{{ transaction.get_type_display }}</td>
@@ -24,73 +50,141 @@
             <td>{{ transaction.description }}</td>
             <td>{{ transaction.date }}</td>
           </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p class="empty-message">You haven’t added any transactions yet.</p>
-    {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-    <a href="/dashboard/" class="back-button">⬅ Back to Dashboard</a>
+  <!-- Pagination Controls -->
+  <div class="pagination">
+    <span class="step-links">
+      {% if page_obj.has_previous %}
+        <a href="?page=1&category={{ category_filter }}&start_date={{ start_date }}&end_date={{ end_date }}" class="pagination-button">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}&category={{ category_filter }}&start_date={{ start_date }}&end_date={{ end_date }}" class="pagination-button">Previous</a>
+      {% endif %}
+
+      <span class="current">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+      </span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&category={{ category_filter }}&start_date={{ start_date }}&end_date={{ end_date }}" class="pagination-button">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&category={{ category_filter }}&start_date={{ start_date }}&end_date={{ end_date }}" class="pagination-button">Last</a>
+      {% endif %}
+    </span>
   </div>
 
   <style>
-    .transactions-container {
-      padding: 30px;
-      font-family: 'Segoe UI', sans-serif;
+    /* General Form and Table Styling */
+    .filter-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+      font-family: Arial, sans-serif;
     }
 
-    h2 {
-      text-align: center;
-      color: #002147;
-      font-size: 2.5rem;
-      margin-bottom: 30px;
+    .filter-group {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .filter-label {
+      font-size: 1rem;
+      color: #333;
+      margin-right: 10px;
+    }
+
+    .filter-input, .filter-dropdown {
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+      width: 220px;
+      margin-right: 10px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .filter-input:focus, .filter-dropdown:focus {
+      border-color: #4c74af;
+      outline: none;
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+    }
+
+    .filter-button {
+      background-color: #4c59af;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .filter-button:hover {
+      background-color: #384c8e;
+      transform: scale(1.05);
+    }
+
+    /* Table Styling */
+    .table-container {
+      max-width: 90%;
+      margin: 0 auto;
+      overflow-x: auto;
     }
 
     .transaction-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 1.2rem;
-      background-color: #f9f9f9;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      margin-top: 20px;
+    }
+
+    .transaction-table th, .transaction-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-size: 1.1rem;
     }
 
     .transaction-table th {
-      background-color: #002147;
+      background-color: #4c68af;
       color: white;
-      padding: 15px;
-      text-align: left;
     }
 
-    .transaction-table td {
-      padding: 15px;
-      border-bottom: 1px solid #ddd;
+    .transaction-table tbody tr:hover {
+      background-color: #f1f1f1;
     }
 
-    .transaction-table tr:nth-child(even) {
-      background-color: #f0f4f8;
-    }
-
-    .back-button {
-      display: inline-block;
-      margin-top: 25px;
-      padding: 10px 20px;
-      background-color: #ccc;
-      color: black;
-      font-weight: bold;
-      text-decoration: none;
-      border-radius: 6px;
-    }
-
-    .back-button:hover {
-      background-color: #bbb;
-    }
-
-    .empty-message {
+    /* Pagination Styling */
+    .pagination {
       text-align: center;
-      font-size: 1.2rem;
-      color: #555;
-      margin-top: 20px;
+      margin-top: 30px;
+    }
+
+    .pagination-button {
+      text-decoration: none;
+      background-color: #4c4eaf;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 6px;
+      margin: 0 8px;
+      font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .pagination-button:hover {
+      background-color: #38438e;
+      transform: scale(1.05);
+    }
+
+    .current {
+      font-size: 1.1rem;
+      color: #333;
+      font-weight: bold;
     }
   </style>
 {% endblock %}
