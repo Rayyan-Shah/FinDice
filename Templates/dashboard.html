@@ -3,32 +3,49 @@
 {% block content %}
   <h1 class="dashboard-title">MoneyParce Dashboard</h1>
 
-  <div style="display: flex; justify-content: space-between; padding: 20px;">
-<div style="border: 1px solid #ccc; padding: 20px; width: 45%;">
-  <h3>Balance Overview:</h3>
-  <p><strong>Base Income:</strong> ${{ base_income }}</p>
-  <p><strong>Additional Transactions (Income):</strong> ${{ logged_income }}</p>
-  <p><strong>Total Income:</strong> ${{ total_income }}</p>
-    <p><strong>Total Cash:</strong> ${{ cash_total }}</p>
+  <div style="display: flex; justify-content: space-between; padding: 20px; gap: 20px;">
+    <!-- Balance Overview Section -->
+    <div style="border: 2px solid #002147; padding: 30px; width: 60%; border-radius: 10px; background-color: #f4f6f9; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+      <h3 class="section-title">Balance Overview:</h3>
+      <p><strong>Base Income:</strong> ${{ base_income }}</p>
+      <p><strong>Additional Transactions (Income):</strong> ${{ logged_income }}</p>
+      <p><strong>Total Income:</strong> ${{ total_income }}</p>
+      <p><strong>Total Cash:</strong> ${{ cash_total }}</p>
+      <p><strong>Total Expenses:</strong> ${{ expense_total }}</p>
+      <p><strong>Net Balance:</strong> ${{ net_total }}</p>
+    </div>
 
-  <p><strong>Total Expenses:</strong> ${{ expense_total }}</p>
-  <p><strong>Net Balance:</strong> ${{ net_total }}</p>
-</div>
-
-
-    <!-- Actions -->
-    <div style="display: flex; flex-direction: column; gap: 10px; width: 45%;">
+    <!-- Actions Section -->
+    <div style="display: flex; flex-direction: column; gap: 20px; width: 35%;">
       <a href="{% url 'add_transaction' %}" class="dashboard-button">➕ Add Transaction</a>
-      <a href="#" class="dashboard-button">📊 Set Budget</a>
+      <a href="{% url 'set_budget' %}" class="dashboard-button">📊 Set Budget</a>
       <a href="#" class="dashboard-button">📈 View Reports</a>
       <a href="#" class="dashboard-button">🎯 Set Financial Goal</a>
-        <a href="{% url 'view_transactions' %}" class="dashboard-button">📋 View All Transactions</a>
-
+      <a href="{% url 'view_transactions' %}" class="dashboard-button">📋 View All Transactions</a>
     </div>
-</div>
+  </div>
 
-     <div class="transactions-container">
-    <h2>Your Recent Transactions</h2>
+  <!-- Budget Section (now with same width as Balance Overview + Buttons) -->
+  {% if budget %}
+    <div style="border: 2px solid #002147; border-radius: 10px; padding: 30px; margin-top: 20px; background-color: #f9f9f9; width: 100%; max-width: 95%; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+      <h4 class="section-title">Budget for {{ budget.month|date:"F Y" }}</h4>
+      <p><strong>Total Budget:</strong> ${{ budget.amount }}</p>
+      <p><strong>Spent:</strong> ${{ monthly_expenses }}</p>
+      {% if budget_left > 0 %}
+        <p><strong>Remaining:</strong> ${{ budget_left }}</p>
+      {% else %}
+        <p><strong>You’re over budget!</strong> 😬</p>
+      {% endif %}
+    </div>
+  {% else %}
+    <div style="border: 2px solid #FFD700; border-radius: 10px; padding: 30px; margin-top: 20px; background-color: #fff3cd; width: 100%; max-width: 95%; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+      <p>No budget set for this month. <a href="{% url 'set_budget' %}"><strong>Set one now.</strong></a></p>
+    </div>
+  {% endif %}
+
+  <!-- Recent Transactions Section -->
+  <div class="transactions-container">
+    <h2 class="section-title">Your Recent Transactions</h2>
     {% if recent_transactions %}
       <table class="transaction-table">
         <thead>
@@ -42,13 +59,13 @@
         </thead>
         <tbody>
           {% for transaction in recent_transactions %}
-          <tr>
-            <td>${{ transaction.amount }}</td>
-            <td>{{ transaction.get_type_display }}</td>
-            <td>{{ transaction.get_category_display }}</td>
-            <td>{{ transaction.description }}</td>
-            <td>{{ transaction.date }}</td>
-          </tr>
+            <tr>
+              <td>${{ transaction.amount }}</td>
+              <td>{{ transaction.get_type_display }}</td>
+              <td>{{ transaction.get_category_display }}</td>
+              <td>{{ transaction.description }}</td>
+              <td>{{ transaction.date }}</td>
+            </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -57,43 +74,47 @@
     {% endif %}
   </div>
 
-
-
-
-
-
-
-
   <style>
-  .dashboard-title {
-    text-align: center;
-    color: #002147; /* Dark navy blue */
-    font-size: 2.5rem;
-    margin-bottom: 30px;
-  }
+    .dashboard-title {
+      text-align: center;
+      color: #002147; /* Dark navy blue */
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 40px;
+      letter-spacing: 1px;
+    }
 
-  .dashboard-button {
-    background-color: #f2f2f2;
-    padding: 10px 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    text-decoration: none;
-    color: #000;
-    text-align: center;
-    font-weight: bold;
-    transition: background-color 0.2s;
-  }
+    .section-title {
+      font-size: 2rem;
+      color: #002147;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
 
-  .dashboard-button:hover {
-    background-color: #e0e0e0;
-  }
-</style>
+    .dashboard-button {
+      background-color: #f2f2f2;
+      padding: 15px 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      text-decoration: none;
+      color: #002147;
+      text-align: center;
+      font-weight: bold;
+      transition: background-color 0.2s;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
 
+    .dashboard-button:hover {
+      background-color: #e0e0e0;
+    }
 
-    <style>
     .transactions-container {
-      padding: 30px;
+      padding: 40px;
       font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-top: 30px;
     }
 
     h2 {
@@ -107,8 +128,10 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 1.2rem;
-      background-color: #f9f9f9;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     .transaction-table th {
@@ -116,11 +139,13 @@
       color: white;
       padding: 15px;
       text-align: left;
+      font-size: 1.1rem;
     }
 
     .transaction-table td {
       padding: 15px;
       border-bottom: 1px solid #ddd;
+      font-size: 1rem;
     }
 
     .transaction-table tr:nth-child(even) {
@@ -130,12 +155,12 @@
     .back-button {
       display: inline-block;
       margin-top: 25px;
-      padding: 10px 20px;
+      padding: 15px 25px;
       background-color: #ccc;
       color: black;
       font-weight: bold;
       text-decoration: none;
-      border-radius: 6px;
+      border-radius: 8px;
     }
 
     .back-button:hover {

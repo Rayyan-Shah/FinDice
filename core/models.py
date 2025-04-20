@@ -34,14 +34,17 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
+from django.db import models
+from django.contrib.auth.models import User
+
 class Budget(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.CharField(max_length=100, blank=True, null=True)  # Optional if you have a category-based budget
+    month = models.DateField()  # Just use the 1st of the month to mark the month
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    month = models.DateField()  # You can just store the year and month or use DateField
 
     def __str__(self):
-        return f"{self.user.username} - {self.category or 'Overall'} - {self.amount}"
+        return f"{self.user.username} - {self.month.strftime('%B %Y')} Budget"
+
 
 
 class FinancialTip(models.Model):

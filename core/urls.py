@@ -23,5 +23,7 @@ urlpatterns = [
     # Transaction Views
     path('transactions/add/', views.add_transaction, name='add_transaction'),
     path('transactions/view/', views.view_transactions, name='view_transactions'),
+path('budget/', views.set_budget, name='set_budget'),
+
 
 ]

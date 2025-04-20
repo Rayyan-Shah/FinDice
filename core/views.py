@@ -29,22 +29,44 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 
+from django.db.models import Sum
+from datetime import date
+from .models import UserProfile, Transaction, Budget
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
 @login_required
 def dashboard(request):
-    base_income = UserProfile.objects.get(user=request.user).income
-    recent_transactions = Transaction.objects.filter(user=request.user).order_by('-date')
-    # Total income from "income"-type transactions
-    logged_income = Transaction.objects.filter(user=request.user, type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    user = request.user
+    profile = UserProfile.objects.get(user=user)
+    base_income = profile.income
 
-    # Total expenses
-    expense_total = Transaction.objects.filter(user=request.user, type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
-    cash_total = Transaction.objects.filter(user=request.user, type='cash').aggregate(Sum('amount'))['amount__sum'] or 0
+    # Transactions
+    recent_transactions = Transaction.objects.filter(user=user).order_by('-date')
+    logged_income = Transaction.objects.filter(user=user, type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    expense_total = Transaction.objects.filter(user=user, type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    cash_total = Transaction.objects.filter(user=user, type='cash').aggregate(Sum('amount'))['amount__sum'] or 0
 
-    # Combined total income
     total_income = base_income + logged_income
-
-    # Net = total income - expenses
     net_total = total_income - expense_total
+
+    # Budget: Get current month's budget
+    today = date.today()
+    current_month = date(today.year, today.month, 1)
+
+    budget = Budget.objects.filter(
+        user=user,
+        month__year=today.year,
+        month__month=today.month
+    ).first()
+
+    monthly_expenses = Transaction.objects.filter(
+        user=user, type='expense',
+        date__year=today.year,
+        date__month=today.month
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    budget_left = budget.amount - monthly_expenses if budget else None
 
     return render(request, 'dashboard.html', {
         'base_income': base_income,
@@ -54,6 +76,9 @@ def dashboard(request):
         'net_total': net_total,
         'cash_total': cash_total,
         'recent_transactions': recent_transactions,
+        'budget': budget,
+        'budget_left': budget_left,
+        'monthly_expenses': monthly_expenses,
     })
 
 
@@ -82,3 +107,30 @@ def view_transactions(request):
 
 def learn(request):
     return render(request, 'learn.html')
+
+
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .forms import BudgetForm
+from .models import Budget
+
+@login_required
+def set_budget(request):
+    if request.method == 'POST':
+        form = BudgetForm(request.POST)
+        if form.is_valid():
+            budget = form.save(commit=False)
+            budget.user = request.user
+
+            # Remove any existing budget for that month
+            existing = Budget.objects.filter(user=request.user, month__year=budget.month.year, month__month=budget.month.month)
+            if existing.exists():
+                existing.delete()
+
+            budget.save()
+            return redirect('dashboard')  # or wherever you want
+    else:
+        form = BudgetForm()
+    return render(request, 'set_budget.html', {'form': form})
+

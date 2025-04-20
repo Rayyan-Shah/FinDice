@@ -15,6 +15,32 @@ from django.contrib.auth.models import User
 from django import forms
 from .models import UserProfile
 
+from django import forms
+from .models import Budget
+# forms.py
+# forms.py
+from django import forms
+from .models import Budget
+from datetime import datetime
+
+class BudgetForm(forms.ModelForm):
+    month = forms.CharField(widget=forms.TextInput(attrs={'type': 'month'}))
+
+    class Meta:
+        model = Budget
+        fields = ['month', 'amount']
+
+    def clean_month(self):
+        raw_month = self.cleaned_data['month']  # e.g., '2025-02'
+        try:
+            # Add day manually and parse into a date
+            return datetime.strptime(raw_month + '-01', '%Y-%m-%d').date()
+        except ValueError:
+            raise forms.ValidationError("Invalid month format.")
+
+
+
+
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=30, required=True)
