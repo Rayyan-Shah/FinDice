@@ -158,21 +158,44 @@
       cursor: pointer;
     }
   </style>
+<script>
+  // Popup close logic
+  function closePopup() {
+    const wrapper = document.getElementById("popup-wrapper");
+    if (wrapper) {
+      wrapper.style.display = "none";
+    }
+  }
 
-  <script>
-    function closePopup() {
-      const wrapper = document.getElementById('popup-wrapper');
-      if (wrapper) {
-        wrapper.style.display = 'none';
+  document.addEventListener("DOMContentLoaded", function () {
+    // Close popup when clicking outside it
+    const popup = document.getElementById("popup");
+    const wrapper = document.getElementById("popup-wrapper");
+    if (wrapper && popup) {
+      document.addEventListener("click", function (e) {
+        if (!popup.contains(e.target)) {
+          wrapper.style.display = "none";
+        }
+      });
+    }
+
+    // Category field toggle logic
+    const typeSelect = document.getElementById("id_type");
+    const categoryFieldWrapper = document.getElementById("id_category")?.closest("p");
+
+    function toggleCategoryVisibility() {
+      if (typeSelect && categoryFieldWrapper) {
+        categoryFieldWrapper.style.display = typeSelect.value === "expense" ? "block" : "none";
       }
     }
 
-    document.addEventListener('click', function(e) {
-      const popup = document.getElementById('popup');
-      const wrapper = document.getElementById('popup-wrapper');
-      if (wrapper && !popup.contains(e.target)) {
-        wrapper.style.display = 'none';
-      }
-    });
-  </script>
+    if (typeSelect && categoryFieldWrapper) {
+      toggleCategoryVisibility(); // run on page load
+      typeSelect.addEventListener("change", toggleCategoryVisibility);
+    }
+  });
+</script>
+
+
+
 {% endblock %}

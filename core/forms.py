@@ -2,12 +2,32 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
+from django import forms
 from .models import Transaction
 
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
         fields = ['amount', 'type', 'category', 'description']
+
+    def __init__(self, *args, **kwargs):
+        super(TransactionForm, self).__init__(*args, **kwargs)
+        self.fields['category'].required = False
+        self.fields['category'].widget.attrs.update({'id': 'id_category'})
+
+    def clean(self):
+        cleaned_data = super().clean()
+        trans_type = cleaned_data.get('type')
+        category = cleaned_data.get('category')
+
+        if trans_type == 'expense':
+            if not category:
+                self.add_error('category', 'Category is required for expenses.')
+        else:
+            cleaned_data['category'] = trans_type  # Set category to 'income' or 'cash'
+
+        return cleaned_data
+
 
 # forms.py
 from django.contrib.auth.forms import UserCreationForm
