@@ -27,6 +27,9 @@ path('budget/', views.set_budget, name='set_budget'),
 path('set_financial_goal/', views.set_financial_goal, name='set_financial_goal'),
 
     path('add_to_savings/', views.add_to_savings, name='add_to_savings'),
+    path('download-csv/', views.download_csv, name='download_csv'),
+
+path('reports/', views.view_reports, name='view_reports'),
     # other paths
 
 

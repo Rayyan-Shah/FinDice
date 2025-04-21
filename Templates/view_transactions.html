@@ -2,6 +2,10 @@
 
 {% block content %}
   <h2 class="section-title">View Transactions</h2>
+<!-- Download CSV Button -->
+<form method="get" action="{% url 'download_csv' %}" class="download-form">
+  <button type="submit" class="download-button">Download CSV</button>
+</form>
 
   <!-- Category Filter Dropdown -->
   <form method="get" class="filter-form">
@@ -181,10 +185,28 @@
       transform: scale(1.05);
     }
 
+  .download-button {
+    background-color: #4caf50;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .download-button:hover {
+    background-color: #388e3c;
+    transform: scale(1.05);
+  }
+</style>
+
     .current {
       font-size: 1.1rem;
       color: #333;
       font-weight: bold;
     }
   </style>
+
 {% endblock %}

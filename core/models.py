@@ -38,7 +38,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Budget(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     month = models.DateField()  # Just use the 1st of the month to mark the month
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -51,7 +51,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class FinancialGoal(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     target_amount = models.DecimalField(max_digits=10, decimal_places=2)
     current_savings = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)

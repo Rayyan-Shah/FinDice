@@ -19,7 +19,9 @@
     <div style="display: flex; flex-direction: column; gap: 20px; width: 35%;">
       <a href="{% url 'add_transaction' %}" class="dashboard-button">➕ Add Transaction</a>
       <a href="{% url 'set_budget' %}" class="dashboard-button">📊 Set Budget</a>
-      <a href="#" class="dashboard-button">📈 View Reports</a>
+
+      <a href="{% url 'view_reports' %}" class="dashboard-button">📈 View Reports</a>
+
       <a href="{% url 'set_financial_goal' %}" class="dashboard-button">🎯 Set Financial Goal</a>
 
       <a href="{% url 'view_transactions' %}" class="dashboard-button">📋 View All Transactions</a>
