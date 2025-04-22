@@ -58,7 +58,7 @@
 
     <!-- Progress Bar -->
     <div style="background-color: #ddd; border-radius: 10px; height: 20px; width: 100%; margin-top: 10px;">
-      <div style="background-color: #4caf50; height: 100%; width: {{ financial_goal.get_progress_percentage }}%; border-radius: 10px;"></div>
+      <div class="progress-bar" style="width: {{ financial_goal.get_progress_percentage|default:0 }}%;"></div>
     </div>
   </div>
 {% else %}
@@ -194,6 +194,11 @@
       font-size: 1.2rem;
       color: #555;
       margin-top: 20px;
+    }
+    .progress-bar {
+      background-color: #4caf50;
+      height: 100%;
+      border-radius: 10px;
     }
   </style>
 {% endblock %}

@@ -1,19 +1,23 @@
 from django.db.models import Sum
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from .forms import TransactionForm
-from .models import Transaction, UserProfile
 from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
-from .forms import CustomUserCreationForm  # Make sure this is imported
-from django.contrib import messages
+from datetime import date, datetime
+from django.core.paginator import Paginator
+from django.http import HttpResponse
+from .forms import TransactionForm, CustomUserCreationForm, BudgetForm, FinancialGoalForm, AddToSavingsForm
+from .models import Transaction, UserProfile, Budget, FinancialGoal
+import csv
+import matplotlib
+matplotlib.use('Agg')  # Ensure Matplotlib runs in a non-interactive mode suitable for web servers
+import matplotlib.pyplot as plt
+import io
+import base64
+import calendar
+
 def home(request):
-    return render(request, 'home.html')
-
-
+    return render(request, 'home.html', {'hide_navbar': True})
 
 def register(request):
     if request.method == 'POST':
@@ -21,19 +25,11 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, "You have successfully registered!")
             return redirect('dashboard')  # Redirect to the dashboard or desired page
     else:
         form = CustomUserCreationForm()
 
     return render(request, 'register.html', {'form': form})
-
-
-from django.db.models import Sum
-from datetime import date
-from .models import UserProfile, Transaction, Budget
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
 
 @login_required
 def dashboard(request):
@@ -72,9 +68,6 @@ def dashboard(request):
     except FinancialGoal.DoesNotExist:
         financial_goal = None  # If the user doesn't have a goal, set it to None
 
-
-
-
     return render(request, 'dashboard.html', {
         'base_income': base_income,
         'logged_income': logged_income,
@@ -88,7 +81,6 @@ def dashboard(request):
         'monthly_expenses': monthly_expenses,
         'financial_goal': financial_goal,
     })
-
 
 @login_required
 def add_transaction(request):
@@ -104,15 +96,6 @@ def add_transaction(request):
         form = TransactionForm()
 
     return render(request, 'add_transaction.html', {'form': form})
-
-
-from django.core.paginator import Paginator
-from django.shortcuts import render
-from .models import Transaction
-from django.shortcuts import render
-from .models import Transaction
-from django.core.paginator import Paginator
-from datetime import datetime
 
 @login_required
 def view_transactions(request):
@@ -155,17 +138,8 @@ def view_transactions(request):
         'end_date': end_date,  # Pass the selected end date
     })
 
-
-
 def learn(request):
     return render(request, 'learn.html')
-
-
-# views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .forms import BudgetForm
-from .models import Budget
 
 @login_required
 def set_budget(request):
@@ -186,13 +160,6 @@ def set_budget(request):
         form = BudgetForm()
     return render(request, 'set_budget.html', {'form': form})
 
-
-
-# views.py
-from django.shortcuts import render, redirect
-from .forms import FinancialGoalForm
-from .models import FinancialGoal
-
 def set_financial_goal(request):
     if request.method == 'POST':
         form = FinancialGoalForm(request.POST)
@@ -204,11 +171,6 @@ def set_financial_goal(request):
     else:
         form = FinancialGoalForm()
     return render(request, 'set_financial_goal.html', {'form': form})
-
-# views.py
-from django.shortcuts import render, redirect
-from .forms import AddToSavingsForm
-from .models import FinancialGoal
 
 def add_to_savings(request):
     if request.method == 'POST':
@@ -222,12 +184,6 @@ def add_to_savings(request):
     else:
         form = AddToSavingsForm()
     return render(request, 'add_to_savings.html', {'form': form})
-
-
-import csv
-from django.http import HttpResponse
-from .models import Transaction  # Update with the correct model import
-
 
 def download_csv(request):
     # Get the transactions (you can add filters here if needed)
@@ -248,34 +204,6 @@ def download_csv(request):
                          transaction.description, transaction.date])
 
     return response
-
-
-# views.py
-
-
-# views.py
-
-import matplotlib
-
-matplotlib.use('Agg')  # Ensure Matplotlib runs in a non-interactive mode suitable for web servers
-import matplotlib.pyplot as plt
-import io
-import base64
-from django.shortcuts import render
-from django.db.models import Sum
-from .models import Transaction
-import calendar
-from datetime import datetime
-
-from datetime import datetime
-import calendar
-import io
-import base64
-import matplotlib.pyplot as plt
-from django.shortcuts import render
-from django.db.models import Sum
-from .models import Transaction, Budget, FinancialGoal
-
 
 def view_reports(request):
     # Retrieve expenses data by category
@@ -342,7 +270,6 @@ def view_reports(request):
 
     <p>In summary, the data suggests that financial behavior is dynamic, shaped by both recurring habits and external conditions. By continuing to monitor monthly changes and category-level trends, users can proactively adapt strategies to reduce unnecessary spending, increase savings, and move closer to long-term objectives.</p>
     """
-
 
     return render(request, 'view_reports.html', {
         'img_data': img_data,
