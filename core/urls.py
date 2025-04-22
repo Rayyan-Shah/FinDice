@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from django.contrib.auth import views as auth_views
 
@@ -30,6 +30,7 @@ path('set_financial_goal/', views.set_financial_goal, name='set_financial_goal')
     path('download-csv/', views.download_csv, name='download_csv'),
 
 path('reports/', views.view_reports, name='view_reports'),
+    path('account/', views.account_settings, name='account_settings'),
     # other paths
 
 

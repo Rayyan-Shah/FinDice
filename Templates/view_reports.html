@@ -1,70 +1,56 @@
-<!-- view_reports.html -->
-
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1 class="section-title">Financial Reports</h1>
+<h1 class="section-title">Financial Reports</h1>
 
-  <!-- Introductory Paragraph -->
-  <div class="dynamic-text-container">
-    <p>
-      Welcome to your personalized financial report. This page provides a comprehensive overview of your recent financial activities, offering key insights into your spending patterns, income trends, and overall progress toward your financial goals. At FinDice, we believe that understanding your finances is the first step toward mastering them. Through clear visuals and dynamic summaries, this dashboard empowers you to make smarter, more informed decisions. Whether you're aiming to save more, reduce unnecessary expenses, or simply become more aware of your money habits, this report is tailored to support your journey.
-    </p>
-    <p>
-      In this report, you’ll find a breakdown of your expenses by category in a pie chart, helping you visualize where your money is going. You’ll also see a line graph tracking your total monthly income throughout the year, giving you a sense of how your earnings evolve over time. These charts are accompanied by a written summary that ties together the data, highlighting key takeaways and suggesting possible next steps. This isn’t just about numbers—it’s about giving you control. Let’s dive into the data and explore what it reveals.
-    </p>
-  </div>
+<!-- Dynamic Financial Text -->
+<div class="dynamic-text-container">
+  <h2>Financial Summary</h2>
+  <p>{{ dynamic_text|safe }}</p>
+</div>
 
-  <!-- Pie Chart for Expenses by Category -->
-  <div class="chart-container">
-    <h2>Expenses by Category</h2>
-    <img src="data:image/png;base64,{{ img_data }}" alt="Expense Category Chart">
-    <p class="chart-description">
-      This pie chart visualizes how expenses are distributed across various categories. It provides a quick overview of which areas contribute most to overall spending, helping users identify patterns and potential areas for cost reduction.
-    </p>
-  </div>
+<!-- Pie Chart -->
+<div id="piechart" style="width: 100%; height: 500px; margin-top:50px;"></div>
 
-  <!-- Line Graph for Total Income per Month -->
-  <div class="chart-container">
-    <h2>Total Income per Month (This Year)</h2>
-    <img src="data:image/png;base64,{{ income_img_data }}" alt="Income Line Graph">
-    <p class="chart-description">
-      This line graph displays the total income recorded each month over the current year. It enables users to track fluctuations and identify seasonal trends or changes in earnings over time.
-    </p>
-  </div>
+<!-- Line Chart -->
+<div id="linechart" style="width: 100%; height: 500px; margin-top:50px;"></div>
 
-  <!-- Dynamic Text with Placeholder Data -->
-  <div class="dynamic-text-container">
-    <h2>Financial Summary</h2>
-    <p>{{ dynamic_text|safe }}</p>
-  </div>
-
-  <!-- FinDice Mission Paragraph -->
-  <div class="dynamic-text-container">
-    <h2>How FinDice Supports You</h2>
-    <p>
-      FinDice isn’t just a budgeting tool—it’s your financial partner. By combining data-driven insights with intuitive design, FinDice helps you build better habits and stay aligned with your financial goals. Whether you're tracking expenses, setting savings targets, or reviewing your income growth, every feature is crafted to empower you. With clear visual reports and actionable summaries, FinDice simplifies financial planning and brings clarity to your decision-making. It's not just about managing money—it’s about creating the future you deserve.
-    </p>
-  </div>
-
-  <!-- Conclusion -->
-  <div class="dynamic-text-container">
-    <h2>Conclusion</h2>
-    <p>
-      Your financial report is a reflection of your choices, goals, and progress. As you continue to review and reflect on your habits, keep in mind that small adjustments can lead to big results. Use this report as a checkpoint to celebrate wins, notice patterns, and stay accountable. With FinDice, your finances are no longer a mystery—they’re a story you’re writing every day. Keep going, keep growing, and remember: you’re in charge of your financial future.
-    </p>
-  </div>
-
+<!-- Back Button -->
 <div class="back-button-container">
   <a href="{% url 'dashboard' %}" class="back-button">← Back to Dashboard</a>
 </div>
 
+<!-- Google Charts Scripts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+  google.charts.load('current', {packages: ['corechart']});
+  google.charts.setOnLoadCallback(drawCharts);
+
+  function drawCharts() {
+    // Pie Chart for Expenses
+    var pieData = google.visualization.arrayToDataTable({{ pie_data|safe }});
+    var pieOptions = {title: 'Expenses by Category'};
+    var pieChart = new google.visualization.PieChart(document.getElementById('piechart'));
+    pieChart.draw(pieData, pieOptions);
+
+    // Line Chart for Income
+    var lineData = google.visualization.arrayToDataTable({{ line_data|safe }});
+    var lineOptions = {
+      title: 'Monthly Income Trend',
+      curveType: 'function',
+      legend: { position: 'bottom' }
+    };
+    var lineChart = new google.visualization.LineChart(document.getElementById('linechart'));
+    lineChart.draw(lineData, lineOptions);
+  }
+</script>
+
+<!-- Styling (already good from your current style) -->
 <style>
   .back-button-container {
     margin-top: 60px;
     text-align: center;
   }
-
   .back-button {
     display: inline-block;
     background-color: #4CAF50;
@@ -76,43 +62,23 @@
     transition: background-color 0.3s ease, transform 0.2s ease;
     font-weight: 600;
   }
-
   .back-button:hover {
     background-color: #45a049;
     transform: scale(1.05);
   }
-
-  .back-button:active {
-    background-color: #3e8e41;
-    transform: scale(0.98);
+  .dynamic-text-container {
+    margin-top: 60px;
+    padding: 0 20px;
+    text-align: left;
+    font-size: 1.15rem;
+    line-height: 1.7;
   }
-    .chart-container {
-      margin-top: 50px;
-      margin-bottom: 50px;
-      text-align: center;
-    }
+  .section-title {
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 40px;
+    font-size: 2rem;
+  }
+</style>
 
-    .chart-container h2 {
-      margin-bottom: 20px;
-    }
-
-    .dynamic-text-container {
-      margin-top: 60px;
-      padding: 0 20px;
-      text-align: left;
-      font-size: 1.15rem;
-      line-height: 1.7;
-    }
-
-    .dynamic-text-container h2 {
-      margin-bottom: 15px;
-    }
-
-    .section-title {
-      text-align: center;
-      margin-top: 30px;
-      margin-bottom: 40px;
-      font-size: 2rem;
-    }
-  </style>
 {% endblock %}
