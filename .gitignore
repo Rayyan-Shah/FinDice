@@ -15,3 +15,4 @@ __pycache__/
 FinDice/venv/
 */venv/
 
+db.sqlite3

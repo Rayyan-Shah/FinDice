@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinDice</title>
 
-    <!-- Updated Font Awesome for the dice icon -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
-    <!-- Internal CSS -->
     <style>
-        /* Make the body take full height */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7fc;
@@ -19,11 +16,11 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            height: 100vh; /* Full viewport height */
+            height: 100vh;
         }
 
         header {
-            background-color: #002147; /* Deep navy blue */
+            background-color: #002147;
             color: white;
             text-align: center;
             padding: 20px;
@@ -44,22 +41,73 @@
             color: #f2f2f2;
         }
 
-        hr {
-            border: 0;
-            height: 1px;
-            background: #ccc;
-            margin: 20px 0;
+        nav {
+            background-color: #003366;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 10px;
+            position: relative;
         }
 
-        /* Block content */
+        nav a, .dropdown-btn {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        nav a:hover, .dropdown-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* Dropdown container */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Dropdown content (hidden by default) */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #004080;
+            min-width: 160px;
+            z-index: 1;
+            flex-direction: column;
+            top: 100%;
+            left: 0;
+        }
+
+        /* Links inside the dropdown */
+        .dropdown-content a {
+            color: white;
+            padding: 10px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #0059b3;
+        }
+
+        /* Show dropdown on hover */
+        .dropdown:hover .dropdown-content {
+            display: flex;
+        }
+
         .content {
-            flex-grow: 1; /* This makes the content take up available space */
+            flex-grow: 1;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        /* Footer Styles */
         footer {
             background-color: #002147;
             color: white;
@@ -76,13 +124,44 @@
 </head>
 <body>
     <header>
-        <!-- Dice icon from Font Awesome -->
         <i class="fas fa-dice"></i>
-        <!-- Make FinDice clickable and link back to the main page -->
-        <a href="/" style="text-decoration: none; color: white;">
-            <h1>FinDice</h1>
-        </a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" style="text-decoration: none; color: white;">
+                <h1>FinDice</h1>
+            </a>
+        {% else %}
+                <h1>FinDice</h1>
+        {% endif %}
     </header>
+
+    <!-- UPDATED NAVBAR -->
+    {% if not hide_navbar %}
+    <nav>
+        {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <div class="dropdown">
+                <button class="dropdown-btn">Manage ▾</button>
+                <div class="dropdown-content">
+                    <a href="{% url 'add_transaction' %}">Add Transaction</a>
+                    <a href="{% url 'view_transactions' %}">Transactions</a>
+                    <a href="{% url 'view_reports' %}">Reports</a>
+                    <a href="{% url 'set_budget' %}">Set Budget</a>
+                    <a href="{% url 'set_financial_goal' %}">Financial Goal</a>
+                </div>
+            </div>
+            <a href="{% url 'learn' %}">Learn</a>
+            <a href="{% url 'account_settings' %}">Account</a>
+            <a href="{% url 'logout' %}">Logout</a>
+
+
+        {% else %}
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'register' %}">Register</a>
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'learn' %}">Learn</a>
+        {% endif %}
+    </nav>
+    {% endif %}
 
     <div class="content">
         {% block content %}{% endblock %}

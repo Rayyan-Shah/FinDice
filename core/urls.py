@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from django.contrib.auth import views as auth_views
 
@@ -12,7 +12,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('learn/',views.learn, name='learn'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
 
     # Password Reset
     path('reset-password/', auth_views.PasswordResetView.as_view(template_name='password_reset.html'), name='password_reset'),
@@ -30,6 +30,7 @@ path('set_financial_goal/', views.set_financial_goal, name='set_financial_goal')
     path('download-csv/', views.download_csv, name='download_csv'),
 
 path('reports/', views.view_reports, name='view_reports'),
+    path('account/', views.account_settings, name='account_settings'),
     # other paths
 
 

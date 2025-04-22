@@ -1,9 +1,12 @@
-from django import forms
+from .models import Transaction
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-
+from .models import UserProfile
+from .models import Budget
 from django import forms
-from .models import Transaction
+from datetime import datetime
+from .models import FinancialGoal
+
 
 class TransactionForm(forms.ModelForm):
     class Meta:
@@ -28,21 +31,6 @@ class TransactionForm(forms.ModelForm):
 
         return cleaned_data
 
-
-# forms.py
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
-from django import forms
-from .models import UserProfile
-
-from django import forms
-from .models import Budget
-# forms.py
-# forms.py
-from django import forms
-from .models import Budget
-from datetime import datetime
-
 class BudgetForm(forms.ModelForm):
     month = forms.CharField(widget=forms.TextInput(attrs={'type': 'month'}))
 
@@ -57,9 +45,6 @@ class BudgetForm(forms.ModelForm):
             return datetime.strptime(raw_month + '-01', '%Y-%m-%d').date()
         except ValueError:
             raise forms.ValidationError("Invalid month format.")
-
-
-
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -77,12 +62,6 @@ class CustomUserCreationForm(UserCreationForm):
         UserProfile.objects.create(user=user, income=income)
         return user
 
-
-
-# forms.py
-from django import forms
-from .models import FinancialGoal
-
 class FinancialGoalForm(forms.ModelForm):
     class Meta:
         model = FinancialGoal
@@ -90,11 +69,6 @@ class FinancialGoalForm(forms.ModelForm):
         widgets = {
             'target_amount': forms.NumberInput(attrs={'placeholder': 'Enter target amount'})
         }
-
-
-# forms.py
-from django import forms
-from .models import FinancialGoal
 
 class AddToSavingsForm(forms.ModelForm):
     class Meta:
@@ -104,3 +78,30 @@ class AddToSavingsForm(forms.ModelForm):
             'current_savings': forms.NumberInput(attrs={'placeholder': 'Enter amount to add to savings'})
         }
 
+class AccountSettingsForm(forms.ModelForm):
+    email = forms.EmailField(required=True)
+    first_name = forms.CharField(max_length=30, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
+    income = forms.DecimalField(max_digits=10, decimal_places=2, required=True)
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(AccountSettingsForm, self).__init__(*args, **kwargs)
+        if user:
+            # Check if UserProfile exists, create if missing
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            self.fields['income'].initial = profile.income
+
+    def save(self, commit=True):
+        user = super(AccountSettingsForm, self).save(commit)
+        income = self.cleaned_data['income']
+        # Always ensure profile exists
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        profile.income = income
+        if commit:
+            profile.save()
+        return user

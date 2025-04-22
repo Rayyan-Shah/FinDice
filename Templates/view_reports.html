@@ -1,70 +1,122 @@
-<!-- view_reports.html -->
-
 {% extends 'base.html' %}
 
 {% block content %}
-  <h1 class="section-title">Financial Reports</h1>
+<h1 class="section-title">Financial Reports</h1>
 
-  <!-- Introductory Paragraph -->
-  <div class="dynamic-text-container">
-    <p>
-      Welcome to your personalized financial report. This page provides a comprehensive overview of your recent financial activities, offering key insights into your spending patterns, income trends, and overall progress toward your financial goals. At FinDice, we believe that understanding your finances is the first step toward mastering them. Through clear visuals and dynamic summaries, this dashboard empowers you to make smarter, more informed decisions. Whether you're aiming to save more, reduce unnecessary expenses, or simply become more aware of your money habits, this report is tailored to support your journey.
-    </p>
-    <p>
-      In this report, you’ll find a breakdown of your expenses by category in a pie chart, helping you visualize where your money is going. You’ll also see a line graph tracking your total monthly income throughout the year, giving you a sense of how your earnings evolve over time. These charts are accompanied by a written summary that ties together the data, highlighting key takeaways and suggesting possible next steps. This isn’t just about numbers—it’s about giving you control. Let’s dive into the data and explore what it reveals.
-    </p>
-  </div>
+<!-- Dynamic Financial Text -->
+<div class="dynamic-text-container">
+  <h2>Financial Summary</h2>
+  <p>{{ dynamic_text|safe }}</p>
+</div>
 
-  <!-- Pie Chart for Expenses by Category -->
-  <div class="chart-container">
-    <h2>Expenses by Category</h2>
-    <img src="data:image/png;base64,{{ img_data }}" alt="Expense Category Chart">
-    <p class="chart-description">
-      This pie chart visualizes how expenses are distributed across various categories. It provides a quick overview of which areas contribute most to overall spending, helping users identify patterns and potential areas for cost reduction.
-    </p>
-  </div>
+<!-- Pie Chart -->
+<div id="piechart" style="width: 100%; height: 500px; margin-top:50px;"></div>
 
-  <!-- Line Graph for Total Income per Month -->
-  <div class="chart-container">
-    <h2>Total Income per Month (This Year)</h2>
-    <img src="data:image/png;base64,{{ income_img_data }}" alt="Income Line Graph">
-    <p class="chart-description">
-      This line graph displays the total income recorded each month over the current year. It enables users to track fluctuations and identify seasonal trends or changes in earnings over time.
-    </p>
-  </div>
+<!-- Line Chart -->
+<div id="linechart" style="width: 100%; height: 500px; margin-top:50px;"></div>
 
-  <!-- Dynamic Text with Placeholder Data -->
-  <div class="dynamic-text-container">
-    <h2>Financial Summary</h2>
-    <p>{{ dynamic_text|safe }}</p>
-  </div>
+<!-- Talk to AI Section -->
+<div class="dynamic-text-container">
+  <h2>Talk to AI</h2>
+  
+  <!-- Chat Box -->
+  <div id="chat-box" style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; height: 300px; overflow-y: auto; margin-bottom: 20px; background: #fafafa;"></div>
 
-  <!-- FinDice Mission Paragraph -->
-  <div class="dynamic-text-container">
-    <h2>How FinDice Supports You</h2>
-    <p>
-      FinDice isn’t just a budgeting tool—it’s your financial partner. By combining data-driven insights with intuitive design, FinDice helps you build better habits and stay aligned with your financial goals. Whether you're tracking expenses, setting savings targets, or reviewing your income growth, every feature is crafted to empower you. With clear visual reports and actionable summaries, FinDice simplifies financial planning and brings clarity to your decision-making. It's not just about managing money—it’s about creating the future you deserve.
-    </p>
-  </div>
+  <!-- Input Form -->
+  <form id="chat-form" method="post" style="display: flex; gap: 10px;">
+    {% csrf_token %}
+    <input id="user-message" type="text" name="user_message" placeholder="Ask something about your finances..." style="flex: 1; padding: 10px; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc;">
+    <button type="submit" style="padding: 10px 20px; font-size: 1rem; background-color: #4CAF50; color: white; border: none; border-radius: 5px;">Send</button>
+  </form>
+</div>
 
-  <!-- Conclusion -->
-  <div class="dynamic-text-container">
-    <h2>Conclusion</h2>
-    <p>
-      Your financial report is a reflection of your choices, goals, and progress. As you continue to review and reflect on your habits, keep in mind that small adjustments can lead to big results. Use this report as a checkpoint to celebrate wins, notice patterns, and stay accountable. With FinDice, your finances are no longer a mystery—they’re a story you’re writing every day. Keep going, keep growing, and remember: you’re in charge of your financial future.
-    </p>
-  </div>
-
+<!-- Back Button -->
 <div class="back-button-container">
   <a href="{% url 'dashboard' %}" class="back-button">← Back to Dashboard</a>
 </div>
 
+<!-- Google Charts Scripts -->
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+  google.charts.load('current', {packages: ['corechart']});
+  google.charts.setOnLoadCallback(drawCharts);
+
+  function drawCharts() {
+    // Pie Chart
+    var pieData = google.visualization.arrayToDataTable({{ pie_data|safe }});
+    var pieOptions = {
+      title: 'Expenses by Category',
+      chartArea: {width: '80%', height: '80%'},
+    };
+    new google.visualization.PieChart(document.getElementById('piechart'))
+      .draw(pieData, pieOptions);
+
+    // Line Chart
+    var lineData = google.visualization.arrayToDataTable({{ line_data|safe }});
+    var lineOptions = {
+      title: 'Monthly Income Trend',
+      curveType: 'function',
+      legend: { position: 'bottom' },
+      chartArea: {width: '80%', height: '70%'},
+    };
+    new google.visualization.LineChart(document.getElementById('linechart'))
+      .draw(lineData, lineOptions);
+  }
+</script>
+
+<!-- AJAX for Chat (with Spinner) -->
+<script>
+document.getElementById('chat-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  let messageInput = document.getElementById('user-message');
+  let message = messageInput.value;
+  if (!message.trim()) return;
+
+  let chatBox = document.getElementById('chat-box');
+  chatBox.innerHTML += `<div class="user-msg"><strong>You:</strong> ${message}</div>`;
+  messageInput.value = "";
+
+  // Add a spinner while waiting
+  let spinnerId = 'spinner-' + Date.now();
+  chatBox.innerHTML += `
+    <div class="ai-msg" id="${spinnerId}">
+      <strong>AI:</strong> <span class="spinner"></span> Thinking...
+    </div>
+  `;
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  fetch("{% url 'view_reports' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-CSRFToken": "{{ csrf_token }}",
+      "X-Requested-With": "XMLHttpRequest"
+    },
+    body: new URLSearchParams({user_message: message})
+  })
+  .then(response => response.json())
+  .then(data => {
+    let spinnerDiv = document.getElementById(spinnerId);
+    if (spinnerDiv) {
+      spinnerDiv.innerHTML = `<strong>AI:</strong> ${data.response}`;
+    }
+    chatBox.scrollTop = chatBox.scrollHeight;
+  })
+  .catch(error => {
+    let spinnerDiv = document.getElementById(spinnerId);
+    if (spinnerDiv) {
+      spinnerDiv.innerHTML = `<strong>AI:</strong> ❌ Error: ${error}`;
+    }
+  });
+});
+</script>
+
+<!-- Styling -->
 <style>
   .back-button-container {
     margin-top: 60px;
     text-align: center;
   }
-
   .back-button {
     display: inline-block;
     background-color: #4CAF50;
@@ -76,46 +128,40 @@
     transition: background-color 0.3s ease, transform 0.2s ease;
     font-weight: 600;
   }
-
   .back-button:hover {
     background-color: #45a049;
     transform: scale(1.05);
   }
-
-  .back-button:active {
-    background-color: #3e8e41;
-    transform: scale(0.98);
-
-  <style>
-    .chart-container {
-      margin-top: 50px;
-      margin-bottom: 50px;
-      text-align: center;
-    }
-
-    .chart-container h2 {
-      margin-bottom: 20px;
-    }
-
-    .dynamic-text-container {
-      margin-top: 60px;
-      padding: 0 20px;
-      text-align: left;
-      font-size: 1.15rem;
-      line-height: 1.7;
-    }
-
-    .dynamic-text-container h2 {
-      margin-bottom: 15px;
-    }
-
-
-
-    .section-title {
-      text-align: center;
-      margin-top: 30px;
-      margin-bottom: 40px;
-      font-size: 2rem;
-    }
-  </style>
+  .dynamic-text-container {
+    margin-top: 60px;
+    padding: 0 20px;
+    text-align: left;
+    font-size: 1.15rem;
+    line-height: 1.7;
+  }
+  .section-title {
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 40px;
+    font-size: 2rem;
+  }
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(0, 0, 0, 0.2);
+    border-top: 3px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  #chat-box .user-msg, #chat-box .ai-msg {
+    margin-bottom: 10px;
+  }
+</style>
 {% endblock %}
