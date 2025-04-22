@@ -103,3 +103,7 @@ Feel free to open issues or submit pull requests. Please adhere to the existing 
 
 *Happy tracking!*
 
+## Current Bugs🪲
+
+- Can’t change future or past month budgets
+- Can’t choose income or cash in adding transactions, thus not being able to give a proper graph that shows changes in income.
