@@ -107,3 +107,4 @@ Feel free to open issues or submit pull requests. Please adhere to the existing 
 
 - Can’t change future or past month budgets
 - Can’t choose income or cash in adding transactions, thus not being able to give a proper graph that shows changes in income.
+- Generic dynamic summary text doesn't pull all the information properly. (budget.amount if budget else 'N/A' seems to always return 'N/A'. Also this looks awful it should be a completely different summary text if no budget is found or some other work around involving AI) [Removed component for now]
