@@ -15,6 +15,21 @@
 <!-- Line Chart -->
 <div id="linechart" style="width: 100%; height: 500px; margin-top:50px;"></div>
 
+<!-- Talk to AI Section -->
+<div class="dynamic-text-container">
+  <h2>Talk to AI</h2>
+  
+  <!-- Chat Box -->
+  <div id="chat-box" style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; height: 300px; overflow-y: auto; margin-bottom: 20px; background: #fafafa;"></div>
+
+  <!-- Input Form -->
+  <form id="chat-form" method="post" style="display: flex; gap: 10px;">
+    {% csrf_token %}
+    <input id="user-message" type="text" name="user_message" placeholder="Ask something about your finances..." style="flex: 1; padding: 10px; font-size: 1rem; border-radius: 5px; border: 1px solid #ccc;">
+    <button type="submit" style="padding: 10px 20px; font-size: 1rem; background-color: #4CAF50; color: white; border: none; border-radius: 5px;">Send</button>
+  </form>
+</div>
+
 <!-- Back Button -->
 <div class="back-button-container">
   <a href="{% url 'dashboard' %}" class="back-button">← Back to Dashboard</a>
@@ -27,22 +42,73 @@
   google.charts.setOnLoadCallback(drawCharts);
 
   function drawCharts() {
-    // Pie Chart for Expenses
+    // Pie Chart
     var pieData = google.visualization.arrayToDataTable({{ pie_data|safe }});
-    var pieOptions = {title: 'Expenses by Category'};
+    var pieOptions = {
+      title: 'Expenses by Category',
+      chartArea: {width: '80%', height: '80%'},
+    };
     new google.visualization.PieChart(document.getElementById('piechart'))
       .draw(pieData, pieOptions);
 
-    // Line Chart for Income
+    // Line Chart
     var lineData = google.visualization.arrayToDataTable({{ line_data|safe }});
     var lineOptions = {
       title: 'Monthly Income Trend',
       curveType: 'function',
-      legend: { position: 'bottom' }
+      legend: { position: 'bottom' },
+      chartArea: {width: '80%', height: '70%'},
     };
     new google.visualization.LineChart(document.getElementById('linechart'))
       .draw(lineData, lineOptions);
   }
+</script>
+
+<!-- AJAX for Chat (with Spinner) -->
+<script>
+document.getElementById('chat-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  let messageInput = document.getElementById('user-message');
+  let message = messageInput.value;
+  if (!message.trim()) return;
+
+  let chatBox = document.getElementById('chat-box');
+  chatBox.innerHTML += `<div class="user-msg"><strong>You:</strong> ${message}</div>`;
+  messageInput.value = "";
+
+  // Add a spinner while waiting
+  let spinnerId = 'spinner-' + Date.now();
+  chatBox.innerHTML += `
+    <div class="ai-msg" id="${spinnerId}">
+      <strong>AI:</strong> <span class="spinner"></span> Thinking...
+    </div>
+  `;
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  fetch("{% url 'view_reports' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-CSRFToken": "{{ csrf_token }}",
+      "X-Requested-With": "XMLHttpRequest"
+    },
+    body: new URLSearchParams({user_message: message})
+  })
+  .then(response => response.json())
+  .then(data => {
+    let spinnerDiv = document.getElementById(spinnerId);
+    if (spinnerDiv) {
+      spinnerDiv.innerHTML = `<strong>AI:</strong> ${data.response}`;
+    }
+    chatBox.scrollTop = chatBox.scrollHeight;
+  })
+  .catch(error => {
+    let spinnerDiv = document.getElementById(spinnerId);
+    if (spinnerDiv) {
+      spinnerDiv.innerHTML = `<strong>AI:</strong> ❌ Error: ${error}`;
+    }
+  });
+});
 </script>
 
 <!-- Styling -->
@@ -78,6 +144,24 @@
     margin-top: 30px;
     margin-bottom: 40px;
     font-size: 2rem;
+  }
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(0, 0, 0, 0.2);
+    border-top: 3px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  #chat-box .user-msg, #chat-box .ai-msg {
+    margin-bottom: 10px;
   }
 </style>
 {% endblock %}
