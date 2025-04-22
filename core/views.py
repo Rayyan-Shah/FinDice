@@ -23,7 +23,12 @@ from .forms import (
     AccountSettingsForm
 )
 from .models import Transaction, UserProfile, Budget, FinancialGoal
-
+import json, os, openai
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+from openai import OpenAI
+from django.conf import settings
 def home(request):
     return render(request, 'home.html', {'hide_navbar': True})
 

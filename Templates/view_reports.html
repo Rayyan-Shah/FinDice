@@ -30,8 +30,8 @@
     // Pie Chart for Expenses
     var pieData = google.visualization.arrayToDataTable({{ pie_data|safe }});
     var pieOptions = {title: 'Expenses by Category'};
-    var pieChart = new google.visualization.PieChart(document.getElementById('piechart'));
-    pieChart.draw(pieData, pieOptions);
+    new google.visualization.PieChart(document.getElementById('piechart'))
+      .draw(pieData, pieOptions);
 
     // Line Chart for Income
     var lineData = google.visualization.arrayToDataTable({{ line_data|safe }});
@@ -40,12 +40,12 @@
       curveType: 'function',
       legend: { position: 'bottom' }
     };
-    var lineChart = new google.visualization.LineChart(document.getElementById('linechart'));
-    lineChart.draw(lineData, lineOptions);
+    new google.visualization.LineChart(document.getElementById('linechart'))
+      .draw(lineData, lineOptions);
   }
 </script>
 
-<!-- Styling (already good from your current style) -->
+<!-- Styling -->
 <style>
   .back-button-container {
     margin-top: 60px;
@@ -80,5 +80,4 @@
     font-size: 2rem;
   }
 </style>
-
 {% endblock %}
