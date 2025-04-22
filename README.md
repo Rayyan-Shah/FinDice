@@ -1,7 +1,16 @@
 # Financial Reports Django App
 
 A simple Django application for tracking transactions, budgets, and financial goals, and viewing interactive reports. Supports charting with Google Charts.
+## Dear Team
+Please read through this to understand how the AI portion works (how to add your api). Don't just ChatGPT this and hope it figuers out how to update the code to work. If you're going to change anything involving AI or global changes please coordinate with the rest of the team so no errors occur. Only push to branches then PR.
+ -Abdulaziz
+  
+## Current Bugs🪲
 
+- Can’t change future or past month budgets
+- Can’t choose income or cash in adding transactions, thus not being able to give a proper graph that shows changes in income.
+- Generic dynamic summary text doesn't pull all the information properly. (budget.amount if budget else 'N/A' seems to always return 'N/A'. Also this looks awful it should be a completely different summary text if no budget is found or some other work around involving AI) [Removed component for now]
+- 
 ## Features
 - User authentication (registration, login, logout)
 - Record income, expenses, and cash transactions
@@ -96,15 +105,10 @@ To disable AI integration, remove or comment out the chat container and related 
 ## License
 MIT
 
-## Contributing
-Feel free to open issues or submit pull requests. Please adhere to the existing code style and add tests for new features.
+
 
 ---
 
 *Happy tracking!*
 
-## Current Bugs🪲
 
-- Can’t change future or past month budgets
-- Can’t choose income or cash in adding transactions, thus not being able to give a proper graph that shows changes in income.
-- Generic dynamic summary text doesn't pull all the information properly. (budget.amount if budget else 'N/A' seems to always return 'N/A'. Also this looks awful it should be a completely different summary text if no budget is found or some other work around involving AI) [Removed component for now]
