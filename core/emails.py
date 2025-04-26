@@ -43,7 +43,7 @@ Here’s your financial summary for {today.strftime('%B %Y')}:
 - Budget: {'$' + str(budget_amount) if budget_amount else 'No budget set'}
 - Financial Goal Progress: {goal_progress}
 
-Keep tracking your finances and reach your goals! 💪
+Keep tracking your finances and reach your goals!
 
 - MoneyParce Team
     """
