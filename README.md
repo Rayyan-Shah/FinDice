@@ -10,7 +10,7 @@ Please read through this to understand how the AI portion works (how to add your
 - Can’t change future or past month budgets
 - Can’t choose income or cash in adding transactions, thus not being able to give a proper graph that shows changes in income.
 - Generic dynamic summary text doesn't pull all the information properly. (budget.amount if budget else 'N/A' seems to always return 'N/A'. Also this looks awful it should be a completely different summary text if no budget is found or some other work around involving AI) [Removed component for now]
-- 
+- "You have successfully registered!" message pops up incorrectly when opening add transaction (recreate: user creates account --> lands homepage --> click add transaction --> incorrect pop up here 
 ## Features
 - User authentication (registration, login, logout)
 - Record income, expenses, and cash transactions
