@@ -22,13 +22,6 @@ Create a `config.json` file at the project root (next to `manage.py`) with the f
 
 ```json
 {
-  "SECRET_KEY": "your-django-secret-key-here",
-  "DEBUG": true,
-  "ALLOWED_HOSTS": ["localhost", "127.0.0.1"],
-  "DATABASE": {
-    "ENGINE": "django.db.backends.sqlite3",
-    "NAME": "db.sqlite3"
-  },
   "SAMBANOVA_API_KEY": "your-sambanova-api-key-here"
 }
 ```
