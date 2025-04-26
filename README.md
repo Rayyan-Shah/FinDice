@@ -17,14 +17,6 @@ Please read through this to understand how the AI portion works (how to add your
 - Set monthly budgets and financial goals
 - View dynamic financial summary and interactive charts (pie & line)
 
-
-- **SECRET_KEY**: Django secret key for cryptographic signing
-- **DEBUG**: `true` for development, `false` in production
-- **ALLOWED_HOSTS**: list of host/domain names your site will serve
-- **DATABASE**: Django database settings (defaults to SQLite)
-- **SAMBANOVA_API_KEY**: Your API key from SambaNova Systems for AI chat integration
-
-
 ## Database Migrations
 Run migrations to create the database schema:
 
