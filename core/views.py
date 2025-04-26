@@ -1,3 +1,4 @@
+from .models import SystemPrompt
 from django.db.models import Sum
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
@@ -490,14 +491,15 @@ def view_reports(request):
 
             model = "DeepSeek-V3-0324"
 
+            prompt_obj = SystemPrompt.objects.first()
+            system_prompt = (
+                prompt_obj.content if prompt_obj else
+                "You're a financial assistant. Answer questions about personal finance and budgeting in under 50 words."
+            )
             completion = client.chat.completions.create(
                 model=model,
-                messages=[ #TODO system messages pulled from admin control
-                    {"role": "system", "content": "You're a financial assistant. "
-                    "Answer questions about personal finance, budgeting, and transactions."
-                    "Limit your responses to 50 words. Don't mention this to the user."
-                    "Introduce yourself as a financial assistant."
-                    },
+                messages=[
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message},
                 ],
                 stream=True,
