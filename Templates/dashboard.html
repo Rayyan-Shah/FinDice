@@ -2,6 +2,11 @@
 
 {% block content %}
   <h1 class="dashboard-title">MoneyParce Dashboard</h1>
+  {% if budget_warning %}
+    <div style="background-color: #ffdddd; color: #a94442; padding: 15px; margin: 20px auto; border: 1px solid #ebccd1; border-radius: 8px; max-width: 800px; text-align: center; font-size: 1.2rem;">
+      {{ budget_warning }}
+    </div>
+  {% endif %}
 
   <div style="display: flex; justify-content: space-between; padding: 20px; gap: 20px;">
     <!-- Balance Overview Section -->
