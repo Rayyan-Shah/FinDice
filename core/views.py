@@ -29,11 +29,18 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from openai import OpenAI
 from django.conf import settings
-# Load config.json
-with open(os.path.join(os.path.dirname(__file__), 'config.json')) as config_file:
-    config = json.load(config_file)
 
-SAMBANOVA_API_KEY = config.get('SAMBANOVA_API_KEY')
+
+from .models import APIConfig
+
+def get_api_key(service_name="SAMBANOVA"):
+    try:
+        config = APIConfig.objects.get(service_name=service_name)
+        return config.api_key
+    except APIConfig.DoesNotExist:
+        return None
+
+
 
 def home(request):
     return render(request, 'home.html', {'hide_navbar': True})
@@ -471,16 +478,21 @@ def view_reports(request):
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         user_message = request.POST.get('user_message')
         try:
-            client = OpenAI(
-                api_key=SAMBANOVA_API_KEY,
-                base_url="https://api.sambanova.ai/v1/",
-            )
+            api_key = get_api_key('SAMBANOVA')
+
+            if api_key:
+                client = OpenAI(
+                    api_key=api_key,
+                    base_url="https://api.sambanova.ai/v1/",
+                )
+            else:
+                return JsonResponse({'response': "❌ API key not configured. Please contact admin."}, status=500)
 
             model = "DeepSeek-V3-0324"
 
             completion = client.chat.completions.create(
                 model=model,
-                messages=[
+                messages=[ #TODO system messages pulled from admin control
                     {"role": "system", "content": "You're a financial assistant. "
                     "Answer questions about personal finance, budgeting, and transactions."
                     "Limit your responses to 50 words. Don't mention this to the user."
