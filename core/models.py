@@ -21,8 +21,8 @@ class Transaction(models.Model):
     category = models.CharField(
         max_length=20,
         choices=CATEGORY_CHOICES,
-        blank=True,  # allow form to submit with empty category
-        null=True    # allow NULL in database
+        blank=True,
+        null=True
     )
     description = models.TextField(blank=True)
     date = models.DateField(auto_now_add=True)
@@ -41,7 +41,7 @@ class UserProfile(models.Model):
 
 class Budget(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    month = models.DateField()  # Just use the 1st of the month to mark the month
+    month = models.DateField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
@@ -61,3 +61,11 @@ class FinancialGoal(models.Model):
 
     def __str__(self):
         return f"Goal for {self.user.username}: ${self.target_amount} - Saved: ${self.current_savings}"
+
+
+class APIConfig(models.Model):
+    service_name = models.CharField(max_length=100, default='SAMBANOVA')
+    api_key = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"API Key for {self.service_name}"
