@@ -17,14 +17,6 @@ Please read through this to understand how the AI portion works (how to add your
 - Set monthly budgets and financial goals
 - View dynamic financial summary and interactive charts (pie & line)
 
-## Configuration
-Create a `config.json` file at the project root (next to `manage.py`) with the following structure:
-
-```json
-{
-  "SAMBANOVA_API_KEY": "your-sambanova-api-key-here"
-}
-```
 
 - **SECRET_KEY**: Django secret key for cryptographic signing
 - **DEBUG**: `true` for development, `false` in production
@@ -32,30 +24,6 @@ Create a `config.json` file at the project root (next to `manage.py`) with the f
 - **DATABASE**: Django database settings (defaults to SQLite)
 - **SAMBANOVA_API_KEY**: Your API key from SambaNova Systems for AI chat integration
 
-### Loading `config.json` in `settings.py`
-In your `settings.py`, load the config:
-
-```python
-import json
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-with open(BASE_DIR / 'config.json') as cfg_file:
-    cfg = json.load(cfg_file)
-
-SECRET_KEY = cfg['SECRET_KEY']
-DEBUG = cfg['DEBUG']
-ALLOWED_HOSTS = cfg['ALLOWED_HOSTS']
-
-# Database config
-DATABASES = {
-    'default': cfg['DATABASE']
-}
-
-# SambaNova API key for AI (if using AI chat)
-SAMBANOVA_API_KEY = cfg.get('SAMBANOVA_API_KEY')
-```
 
 ## Database Migrations
 Run migrations to create the database schema:
