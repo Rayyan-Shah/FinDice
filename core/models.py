@@ -40,7 +40,7 @@ class UserProfile(models.Model):
 
 
 class Budget(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     month = models.DateField()  # Just use the 1st of the month to mark the month
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
