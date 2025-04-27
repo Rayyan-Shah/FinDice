@@ -258,7 +258,7 @@ def get_api_key(service_name="SAMBANOVA"):
 
 from django.db.models import Sum
 import calendar
-from datetime import datetime
+from datetime import datetime, timedelta
 from openai import OpenAI
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -496,7 +496,7 @@ def fetch_transactions_logic(user):
     if not access_token:
         return
 
-    end_date = datetime.datetime.now().date()
+    end_date = datetime.now().date()
     start_date = end_date - datetime.timedelta(days=90)
 
     request_data = TransactionsGetRequest(
@@ -590,8 +590,3 @@ def set_new_password(request):
 
 
 # core/views.py
-
-@login_required
-def password_reset_success(request):
-    """Password changed successfully"""
-    return render(request, 'password_reset_success.html')
