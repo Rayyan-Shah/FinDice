@@ -532,3 +532,67 @@ def fetch_transactions(request):
     """Public Django view to manually trigger fetching transactions if needed"""
     fetch_transactions_logic(request.user)
     return JsonResponse({'status': 'transactions fetch triggered'})
+
+# core/views.py
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.shortcuts import render, redirect
+
+
+# core/views.py
+
+from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.models import User
+from django.contrib import messages
+
+@csrf_exempt
+def reset_password_email(request):
+    """Step 1: Ask for user's email"""
+
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        try:
+            user = User.objects.get(email=email)
+            # Store the user ID in session temporarily
+            request.session['reset_user_id'] = user.id
+            return redirect('set_new_password')
+        except User.DoesNotExist:
+            messages.error(request, 'No account found with that email.')
+
+    return render(request, 'reset_password_email.html')
+
+# core/views.py
+
+@csrf_exempt
+def set_new_password(request):
+    """Step 2: Set new password after email is verified"""
+
+    user_id = request.session.get('reset_user_id')
+    if not user_id:
+        return redirect('reset_password_email')
+
+    user = User.objects.get(id=user_id)
+
+    if request.method == 'POST':
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            # Clear the session
+            del request.session['reset_user_id']
+            messages.success(request, 'Your password has been reset successfully.')
+            return redirect('login')
+    else:
+        form = SetPasswordForm(user)
+
+    return render(request, 'set_new_password.html', {'form': form})
+
+
+
+
+# core/views.py
+
+@login_required
+def password_reset_success(request):
+    """Password changed successfully"""
+    return render(request, 'password_reset_success.html')

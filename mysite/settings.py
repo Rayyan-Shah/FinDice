@@ -52,6 +52,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# settings.py
+
+LOGIN_URL = 'login'  # <-- this tells Django to use your custom /login/ URL
 
 # Application definition
 
