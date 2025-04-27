@@ -497,7 +497,7 @@ def fetch_transactions_logic(user):
         return
 
     end_date = datetime.now().date()
-    start_date = end_date - datetime.timedelta(days=90)
+    start_date = end_date - timedelta(days=90)
 
     request_data = TransactionsGetRequest(
         access_token=access_token,
@@ -526,11 +526,16 @@ def fetch_transactions_logic(user):
         )
 
 
+@login_required
 @csrf_exempt
 def fetch_transactions(request):
-    """Public Django view to manually trigger fetching transactions if needed"""
-    fetch_transactions_logic(request.user)
-    return JsonResponse({'status': 'transactions fetch triggered'})
+    """Silently trigger fetching transactions for the user"""
+    if request.method == 'POST':
+        fetch_transactions_logic(request.user)
+        return redirect('dashboard')  # just redirect, no success message
+
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
 
 # core/views.py
 from django.contrib.auth.decorators import login_required
