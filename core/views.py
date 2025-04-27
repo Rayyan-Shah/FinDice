@@ -438,7 +438,6 @@ from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchan
 from plaid.model.transactions_get_request import TransactionsGetRequest
 from plaid.model.transactions_get_request_options import TransactionsGetRequestOptions
 
-import datetime
 from decimal import Decimal
 
 def create_link_token(request):
