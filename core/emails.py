@@ -27,7 +27,7 @@ def send_financial_summary_email(user):
 
     try:
         goal = FinancialGoal.objects.get(user=user)
-        goal_progress = f"{goal.get_progress_percentage:.2f}%"
+        goal_progress = f"{goal.get_progress_percentage():.2f}%"
     except FinancialGoal.DoesNotExist:
         goal_progress = "No goal set."
 

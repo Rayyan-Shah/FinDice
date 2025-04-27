@@ -20,6 +20,7 @@ from .models import (
     Transaction, UserProfile, Budget, FinancialGoal,
     APIConfig, SystemPrompt
 )
+from django.contrib import messages
 
 
 # ---------------------------Views------------------------
@@ -43,8 +44,12 @@ def register(request):
 @login_required
 def dashboard(request):
     user = request.user
-    profile = UserProfile.objects.get(user=user)
-    base_income = profile.income
+    if user.is_staff or user.is_superuser:
+        base_income = 0
+        profile = None
+    else:
+        profile, created = UserProfile.objects.get_or_create(user=user, defaults={'income': 0})
+        base_income = profile.income
 
     # Transactions
     recent_transactions = Transaction.objects.filter(user=user).order_by('-date')
@@ -185,16 +190,23 @@ def set_budget(request):
 
 @login_required
 def set_financial_goal(request):
+    try:
+        financial_goal = FinancialGoal.objects.get(user=request.user)
+    except FinancialGoal.DoesNotExist:
+        financial_goal = None
+
     if request.method == 'POST':
-        form = FinancialGoalForm(request.POST)
+        form = FinancialGoalForm(request.POST, instance=financial_goal)
         if form.is_valid():
-            financial_goal = form.save(commit=False)
-            financial_goal.user = request.user
-            financial_goal.save()
-            return redirect('dashboard')  # Redirect back to the dashboard
+            goal = form.save(commit=False)
+            goal.user = request.user  # Ensure user is set
+            goal.save()
+            return redirect('dashboard')
     else:
-        form = FinancialGoalForm()
+        form = FinancialGoalForm(instance=financial_goal)
+
     return render(request, 'set_financial_goal.html', {'form': form})
+
 
 
 
@@ -237,218 +249,6 @@ def download_csv(request):
     return response
 
 
-# def view_reports(request):
-#     # Retrieve expenses data by category
-#     transactions = Transaction.objects.filter(user=request.user)
-#     expense_categories = transactions.filter(type='expense').values('category').annotate(total_amount=Sum('amount'))
-
-#     # Pie chart for expenses by category
-#     fig, ax = plt.subplots(figsize=(6, 6))
-#     ax.pie([cat['total_amount'] for cat in expense_categories],
-#            labels=[cat['category'] for cat in expense_categories],
-#            autopct='%1.1f%%',
-#            startangle=140)
-#     ax.set_title("Expenses by Category")
-#     plt.tight_layout()
-
-#     img_buf = io.BytesIO()
-#     plt.savefig(img_buf, format='png')
-#     img_buf.seek(0)
-#     img_data = base64.b64encode(img_buf.read()).decode('utf-8')
-#     plt.close(fig)
-
-#     # Line graph for total income per month this year
-#     current_year = datetime.now().year
-#     months = [calendar.month_name[i] for i in range(1, 13)]
-#     total_income_per_month = []
-
-#     for month in range(1, 13):
-#         total_income = transactions.filter(
-#             type='income',
-#             date__year=current_year,
-#             date__month=month
-#         ).aggregate(Sum('amount'))['amount__sum'] or 0
-#         total_income_per_month.append(total_income)
-
-#     fig2, ax2 = plt.subplots(figsize=(10, 5))
-#     ax2.plot(months, total_income_per_month, marker='o', linestyle='-', color='b')
-#     ax2.set_title("Total Income per Month (This Year)")
-#     ax2.set_xlabel('Month')
-#     ax2.set_ylabel('Income ($)')
-#     ax2.tick_params(axis='x', rotation=45)
-#     plt.tight_layout()
-
-#     img_buf2 = io.BytesIO()
-#     plt.savefig(img_buf2, format='png')
-#     img_buf2.seek(0)
-#     income_img_data = base64.b64encode(img_buf2.read()).decode('utf-8')
-#     plt.close(fig2)
-
-#     # Get budget and goal objects
-#     budget = Budget.objects.filter(user=request.user).first()
-#     goal = FinancialGoal.objects.filter(user=request.user).first()
-
-#     # Generate dynamic summary text
-#     dynamic_text = f"""
-#     <p>This report summarizes the user's financial activity over the current calendar year, highlighting key trends in income and expenses. The data includes monthly income distributions and categorized expenditures, offering a foundation for ongoing financial planning and evaluation.</p>
-
-#     <p>The income chart reveals significant variability throughout the year. For example, the user earned ${total_income_per_month[0]:,.2f} in {months[0]}, followed by fluctuations that led to a peak of ${total_income_per_month[5]:,.2f} in {months[5]}. These figures may reflect seasonal employment, variable business performance, or other external income influences. Recognizing these cycles is essential for forecasting future income and improving financial stability.</p>
-
-#     <p>Expense analysis shows a concentration of spending within specific categories. The pie chart outlines how funds are distributed, enabling users to visually identify their most significant expense areas. This can support targeted interventions, such as reducing discretionary spending or negotiating recurring costs. Notably, {months[3]} and {months[9]} showed elevated expense levels, which may correspond to irregular but expected costs such as tuition, travel, or holidays.</p>
-
-#     <p>The user's budget is currently set at ${budget.amount if budget else 'N/A'}. Budget tracking ensures spending stays aligned with goals and income, and users may benefit from revisiting this figure periodically based on changing needs or financial goals. Creating sub-budgets per category could further enhance visibility and control.</p>
-
-#     <p>Progress toward the user’s financial goal is also reflected in this report. With current savings totaling ${goal.current_savings if goal else 'N/A'} and a target of ${goal.target_amount if goal else 'N/A'}, consistent contributions remain key. Users are encouraged to align savings with high-income months to accelerate goal achievement, particularly if income continues to fluctuate across the year.</p>
-
-#     <p>In summary, the data suggests that financial behavior is dynamic, shaped by both recurring habits and external conditions. By continuing to monitor monthly changes and category-level trends, users can proactively adapt strategies to reduce unnecessary spending, increase savings, and move closer to long-term objectives.</p>
-#     """
-
-#     return render(request, 'view_reports.html', {
-#         'img_data': img_data,
-#         'income_img_data': income_img_data,
-#         'dynamic_text': dynamic_text,
-#     })
-
-
-# @login_required
-# def view_reports(request):
-#     transactions = Transaction.objects.filter(user=request.user)
-
-#     # Expenses by Category
-#     expense_categories = transactions.filter(type='expense').values('category').annotate(total_amount=Sum('amount'))
-#     pie_data = [['Category', 'Amount']]  # Google Charts expects header row
-#     for item in expense_categories:
-#         pie_data.append([item['category'], float(item['total_amount'])])
-
-#     # Line graph: Income per Month
-#     current_year = datetime.now().year
-#     months = [calendar.month_abbr[i] for i in range(1, 13)]  # Jan, Feb, Mar, etc
-#     line_data = [['Month', 'Income']]
-#     for month_num in range(1, 13):
-#         total_income = transactions.filter(
-#             type='income',
-#             date__year=current_year,
-#             date__month=month_num
-#         ).aggregate(Sum('amount'))['amount__sum'] or 0
-#         line_data.append([calendar.month_abbr[month_num], float(total_income)])
-
-#     # Budget + Financial Goal
-#     budget = Budget.objects.filter(user=request.user).first()
-#     goal = FinancialGoal.objects.filter(user=request.user).first()
-
-#     # Dynamic Summary
-#     dynamic_text = f"""
-#     <p>This report summarizes the user's financial activity over the current calendar year, highlighting key trends in income and expenses. The data includes monthly income distributions and categorized expenditures, offering a foundation for ongoing financial planning and evaluation.</p>
-#     <p>The income chart reveals significant variability throughout the year. For example, the user earned ${line_data[1][1]:,.2f} in {line_data[1][0]}, followed by fluctuations that led to a peak of ${max(line_data[1:], key=lambda x: x[1])[1]:,.2f} in {max(line_data[1:], key=lambda x: x[1])[0]}.</p>
-#     <p>Expense analysis shows a concentration of spending within specific categories. The pie chart outlines how funds are distributed, enabling users to visually identify their most significant expense areas. This can support targeted interventions, such as reducing discretionary spending or negotiating recurring costs.</p>
-#     <p>The user's budget is currently set at ${budget.amount if budget else 'N/A'}. Progress toward financial goals is crucial, with current savings at ${goal.current_savings if goal else 'N/A'} toward a target of ${goal.target_amount if goal else 'N/A'}.</p>
-#     """
-
-#     # ========= ✨ TEMPORARY: Test AI here ==========
-#     try:
-#         import os
-#         from openai import OpenAI
-
-#         api_key = "febc1aaa-6c2d-4359-853f-0ea6c616c343"  # 🧪 HARDCODED for now
-#         client = OpenAI(
-#             api_key=api_key,
-#             base_url="https://api.sambanova.ai/v1/",  # ✅ Notice the slash at the end! (official guide does it)
-#         )
-
-#         model = "DeepSeek-V3-0324"  # or any other model they support
-
-#         # Instead of "Some text..." -> now a real message for testing
-#         completion = client.chat.completions.create(
-#             model=model,
-#             messages=[
-#                 {"role": "user", "content": "Give me a motivational quote for personal finance."},
-#             ],
-#             stream=True,  # 🧠 SambaNova officially recommends using streaming ✅
-#         )
-
-#         ai_response = ""
-#         for chunk in completion:
-#             ai_response += chunk.choices[0].delta.content or ""
-
-#         print("✅ AI Response:", ai_response)
-
-#     except Exception as e:
-#         print(f"❌ Error calling AI: {e}")
-
-
-#     # ========= ✨ END OF TEST ==========
-
-#     context = {
-#         'pie_data': pie_data,
-#         'line_data': line_data,
-#         'dynamic_text': dynamic_text,
-#     }
-#     return render(request, 'view_reports.html', context)
-
-# @login_required
-# def view_reports(request):
-#     transactions = Transaction.objects.filter(user=request.user)
-
-#     # Expenses by Category
-#     expense_categories = transactions.filter(type='expense').values('category').annotate(total_amount=Sum('amount'))
-#     pie_data = [['Category', 'Amount']]
-#     for item in expense_categories:
-#         pie_data.append([item['category'], float(item['total_amount'])])
-
-#     # Line graph: Income per Month
-#     current_year = datetime.now().year
-#     months = [calendar.month_abbr[i] for i in range(1, 13)]
-#     line_data = [['Month', 'Income']]
-#     for month_num in range(1, 13):
-#         total_income = transactions.filter(
-#             type='income',
-#             date__year=current_year,
-#             date__month=month_num
-#         ).aggregate(Sum('amount'))['amount__sum'] or 0
-#         line_data.append([calendar.month_abbr[month_num], float(total_income)])
-
-#     # Budget + Financial Goal
-#     budget = Budget.objects.filter(user=request.user).first()
-#     goal = FinancialGoal.objects.filter(user=request.user).first()
-
-#     # Default values
-#     dynamic_text = ""
-#     ai_response = None
-
-#     if request.method == 'POST':
-#         user_message = request.POST.get('user_message')
-#         if user_message:
-#             try:
-#                 client = OpenAI(
-#                     api_key="febc1aaa-6c2d-4359-853f-0ea6c616c343",
-#                     base_url="https://api.sambanova.ai/v1/",
-#                 )
-
-#                 model = "DeepSeek-V3-0324"
-
-#                 completion = client.chat.completions.create(
-#                     model=model,
-#                     messages=[
-#                         {"role": "user", "content": user_message},
-#                     ],
-#                     stream=True,
-#                 )
-
-#                 ai_response = ""
-#                 for chunk in completion:
-#                     ai_response += chunk.choices[0].delta.content or ""
-
-#             except Exception as e:
-#                 ai_response = f"❌ Error calling AI: {str(e)}"
-
-#     context = {
-#         'pie_data': pie_data,
-#         'line_data': line_data,
-#         'dynamic_text': dynamic_text,
-#         'ai_response': ai_response,
-#     }
-#     return render(request, 'view_reports.html', context)
-
 
 def get_api_key(service_name="SAMBANOVA"):
     try:
@@ -457,13 +257,28 @@ def get_api_key(service_name="SAMBANOVA"):
     except APIConfig.DoesNotExist:
         return None
 
+
+
+from django.db.models import Sum
+import calendar
+from datetime import datetime
+from openai import OpenAI
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from .models import Transaction, Budget, FinancialGoal, UserProfile, APIConfig
+
 @login_required
 @csrf_exempt
 def view_reports(request):
-    transactions = Transaction.objects.filter(user=request.user)
+    user = request.user
+    transactions = Transaction.objects.filter(user=user)
 
     # Expenses by Category
-    expense_categories = transactions.filter(type='expense').values('category').annotate(total_amount=Sum('amount'))
+    expense_categories = transactions.filter(type='expense') \
+        .values('category') \
+        .annotate(total_amount=Sum('amount'))
     pie_data = [['Category', 'Amount']]
     for item in expense_categories:
         pie_data.append([item['category'], float(item['total_amount'])])
@@ -473,44 +288,107 @@ def view_reports(request):
     months = [calendar.month_abbr[i] for i in range(1, 13)]
     line_data = [['Month', 'Income']]
     for month_num in range(1, 13):
-        total_income = transactions.filter(
+        monthly_income = transactions.filter(
             type='income',
             date__year=current_year,
             date__month=month_num
         ).aggregate(Sum('amount'))['amount__sum'] or 0
-        line_data.append([calendar.month_abbr[month_num], float(total_income)])
+        line_data.append([calendar.month_abbr[month_num], float(monthly_income)])
 
-    budget = Budget.objects.filter(user=request.user).first()
-    goal = FinancialGoal.objects.filter(user=request.user).first()
+    # Budget and Financial Goal
+    budget = Budget.objects.filter(user=user, month__year=current_year, month__month=datetime.now().month).first()
+    goal = FinancialGoal.objects.filter(user=user).first()
 
-    dynamic_text = f"""
-    <p>This report summarizes the user's financial activity over the current calendar year, highlighting key trends in income and expenses.</p>
+    # Basic dynamic text for the page
+    dynamic_text = """
+    <p>This report summarizes your financial activity over the current calendar year, highlighting trends in income and expenses.</p>
     """
 
+    # --- Build the user's personal financial snapshot ---
+    profile = UserProfile.objects.filter(user=user).first()
+    base_income = profile.income if profile else 0
+    logged_income = transactions.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    expenses_total = transactions.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    cash_total = transactions.filter(type='cash').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_income = base_income + logged_income
+    budget_amount = budget.amount if budget else "No budget set"
+    savings_progress = goal.get_progress_percentage() if goal else "No financial goal set"
+
+    # Keyword analysis based on description
+    keywords = ['toys', 'games', 'clothes', 'gifts', 'travel', 'electronics', 'food', 'rent', 'entertainment']
+    keyword_spending = {k: 0 for k in keywords}
+    for t in transactions.filter(type='expense'):
+        if t.description:
+            for k in keywords:
+                if k in t.description.lower():
+                    keyword_spending[k] += float(t.amount)
+
+    # Build the user snapshot
+    user_name = user.first_name or user.username
+    user_snapshot = f"""
+You are assisting {user_name} (Username: {user.username}).
+
+🧾 Income and Expenses:
+- Base Income: ${base_income:.2f}
+- Logged Income: ${logged_income:.2f}
+- Cash Total: ${cash_total:.2f}
+- Expenses Total: ${expenses_total:.2f}
+- Total Income (Base + Logged): ${total_income:.2f}
+
+📊 Budget and Financial Goals:
+- Current Month's Budget: {budget_amount}
+- Financial Goal Progress: {savings_progress if isinstance(savings_progress, str) else f"{savings_progress:.2f}%"}
+
+🗂️ Expense Categories:
+"""
+    for item in expense_categories:
+        user_snapshot += f"   - {item['category'].capitalize()}: ${item['total_amount']:.2f}\n"
+
+    user_snapshot += "\n🔍 Spending by Description Keywords:\n"
+    for keyword, amount in keyword_spending.items():
+        if amount > 0:
+            user_snapshot += f"   - {keyword.capitalize()}: ${amount:.2f}\n"
+
+    # --- Retrieve Admin System Prompt (if any) ---
+    prompt_obj = SystemPrompt.objects.first()
+    admin_prompt = prompt_obj.content.strip() if prompt_obj else None
+
+    if admin_prompt:
+        final_system_prompt = admin_prompt + "\n\n" + user_snapshot
+    else:
+        # Default fallback if no admin custom prompt
+        final_system_prompt = f"""
+Hi {user_name}! 👋 I'm your personal finance assistant.
+Here is your financial snapshot:
+
+{user_snapshot}
+
+Please ask me anything about your spending, savings, or budgeting! I'll keep my answers short, clear, and helpful.
+        """.strip()
+
+    # Debug (optional)
+    print("🧠 Final System Prompt sent to AI:\n", final_system_prompt)
+
+    # --- Handle Chat POST AJAX ---
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         user_message = request.POST.get('user_message')
         try:
             api_key = get_api_key('SAMBANOVA')
 
-            if api_key:
-                client = OpenAI(
-                    api_key=api_key,
-                    base_url="https://api.sambanova.ai/v1/",
-                )
-            else:
+            if not api_key:
                 return JsonResponse({'response': "❌ API key not configured. Please contact admin."}, status=500)
+
+            client = OpenAI(
+                api_key=api_key,
+                base_url="https://api.sambanova.ai/v1/",
+            )
 
             model = "DeepSeek-V3-0324"
 
-            prompt_obj = SystemPrompt.objects.first()
-            system_prompt = (
-                prompt_obj.content if prompt_obj else
-                "You're a financial assistant. Answer questions about personal finance and budgeting in under 50 words."
-            )
             completion = client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": final_system_prompt},
                     {"role": "user", "content": user_message},
                 ],
                 stream=True,
@@ -525,12 +403,14 @@ def view_reports(request):
         except Exception as e:
             return JsonResponse({'response': f"❌ Error: {str(e)}"}, status=500)
 
+    # --- Normal page load (GET) ---
     context = {
         'pie_data': pie_data,
         'line_data': line_data,
         'dynamic_text': dynamic_text,
     }
     return render(request, 'view_reports.html', context)
+
 
 @login_required
 def account_settings(request):
