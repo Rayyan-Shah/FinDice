@@ -1,47 +1,28 @@
-from .models import SystemPrompt
-from django.db.models import Sum
 from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.core.paginator import Paginator
-from django.http import HttpResponse
-from datetime import date, datetime
-import csv
-import matplotlib
-matplotlib.use('Agg')  # Ensure Matplotlib runs in a non-interactive mode suitable for web servers
-import matplotlib.pyplot as plt
-import io
-import base64
-import calendar
-from .forms import (
-    TransactionForm,
-    CustomUserCreationForm,
-    BudgetForm,
-    FinancialGoalForm,
-    AddToSavingsForm,
-    AccountSettingsForm
-)
-from .models import Transaction, UserProfile, Budget, FinancialGoal
-import json, os
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Sum
+from datetime import date, datetime
+import json, os, csv, calendar, io, base64
+import matplotlib
+matplotlib.use('Agg')  # For server-side Matplotlib
+import matplotlib.pyplot as plt
 from openai import OpenAI
-from django.conf import settings
+from .forms import (
+    TransactionForm, CustomUserCreationForm, BudgetForm,
+    FinancialGoalForm, AddToSavingsForm, AccountSettingsForm
+)
+from .models import (
+    Transaction, UserProfile, Budget, FinancialGoal,
+    APIConfig, SystemPrompt
+)
 
 
-from .models import APIConfig
-
-def get_api_key(service_name="SAMBANOVA"):
-    try:
-        config = APIConfig.objects.get(service_name=service_name)
-        return config.api_key
-    except APIConfig.DoesNotExist:
-        return None
-
-
+# ---------------------------Views------------------------
 
 def home(request):
     return render(request, 'home.html', {'hide_navbar': True})
@@ -188,6 +169,9 @@ def set_budget(request):
         form = BudgetForm()
     return render(request, 'set_budget.html', {'form': form})
 
+
+
+@login_required
 def set_financial_goal(request):
     if request.method == 'POST':
         form = FinancialGoalForm(request.POST)
@@ -200,6 +184,10 @@ def set_financial_goal(request):
         form = FinancialGoalForm()
     return render(request, 'set_financial_goal.html', {'form': form})
 
+
+
+
+@login_required
 def add_to_savings(request):
     if request.method == 'POST':
         form = AddToSavingsForm(request.POST)
@@ -213,6 +201,9 @@ def add_to_savings(request):
         form = AddToSavingsForm()
     return render(request, 'add_to_savings.html', {'form': form})
 
+
+
+@login_required
 def download_csv(request):
     # Get the transactions (you can add filters here if needed)
     transactions = Transaction.objects.all()  # Or apply filters based on request.GET data
@@ -445,6 +436,14 @@ def download_csv(request):
 #         'ai_response': ai_response,
 #     }
 #     return render(request, 'view_reports.html', context)
+
+
+def get_api_key(service_name="SAMBANOVA"):
+    try:
+        config = APIConfig.objects.get(service_name=service_name)
+        return config.api_key
+    except APIConfig.DoesNotExist:
+        return None
 
 @login_required
 @csrf_exempt
