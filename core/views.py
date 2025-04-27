@@ -55,7 +55,6 @@ def dashboard(request):
     total_income = base_income + logged_income
     net_total = total_income - expense_total
 
-    # Budget: Get current month's budget
     today = date.today()
     current_month = date(today.year, today.month, 1)
 
@@ -72,10 +71,22 @@ def dashboard(request):
     ).aggregate(Sum('amount'))['amount__sum'] or 0
 
     budget_left = budget.amount - monthly_expenses if budget else None
+
+    # Financial goal
     try:
         financial_goal = FinancialGoal.objects.get(user=request.user)
     except FinancialGoal.DoesNotExist:
-        financial_goal = None  # If the user doesn't have a goal, set it to None
+        financial_goal = None
+
+    budget_warning = None
+
+    if budget:
+        budget_usage_percentage = (monthly_expenses / budget.amount) * 100
+
+        if budget_usage_percentage >= 100:
+            budget_warning = "You have exceeded your monthly budget!"
+        elif budget_usage_percentage >= 80:
+            budget_warning = "You are nearing your monthly budget (over 80% used)!"
 
     return render(request, 'dashboard.html', {
         'base_income': base_income,
@@ -89,6 +100,7 @@ def dashboard(request):
         'budget_left': budget_left,
         'monthly_expenses': monthly_expenses,
         'financial_goal': financial_goal,
+        'budget_warning': budget_warning,
     })
 
 @login_required
