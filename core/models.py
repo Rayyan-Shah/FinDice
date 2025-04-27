@@ -34,6 +34,7 @@ class Transaction(models.Model):
 class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     income = models.DecimalField(max_digits=10, decimal_places=2)
+    bank_access_token = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.user.username

@@ -52,7 +52,7 @@ def dashboard(request):
         base_income = profile.income
 
     # Transactions
-    recent_transactions = Transaction.objects.filter(user=user).order_by('-date')
+    recent_transactions = Transaction.objects.filter(user=user).order_by('-date')[:10]
     logged_income = Transaction.objects.filter(user=user, type='income').aggregate(Sum('amount'))['amount__sum'] or 0
     expense_total = Transaction.objects.filter(user=user, type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
     cash_total = Transaction.objects.filter(user=user, type='cash').aggregate(Sum('amount'))['amount__sum'] or 0
@@ -122,47 +122,44 @@ def add_transaction(request):
         form = TransactionForm()
 
     return render(request, 'add_transaction.html', {'form': form})
-
 @login_required
 def view_transactions(request):
-    # Get the category filter value from the GET request (default to 'all' if not provided)
     category_filter = request.GET.get('category', 'all')
 
-    # Get the date filter values from the GET request (default to None if not provided)
     start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
+    if not start_date or start_date == 'None':
+        start_date = None
 
-    # Start building the query filter
+    end_date = request.GET.get('end_date')
+    if not end_date or end_date == 'None':
+        end_date = None
+
     transactions = Transaction.objects.filter(user=request.user)
 
-    # Apply category filter if provided
     if category_filter != 'all':
         transactions = transactions.filter(category=category_filter)
 
-    # Apply date range filter if both start_date and end_date are provided
     if start_date:
         transactions = transactions.filter(date__gte=start_date)
     if end_date:
         transactions = transactions.filter(date__lte=end_date)
 
-    # Sort the transactions by date (most recent first)
     transactions = transactions.order_by('-date')
 
-    # Paginate the transactions (10 per page)
     paginator = Paginator(transactions, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Get the list of categories for the dropdown
     categories = Transaction.CATEGORY_CHOICES
 
     return render(request, 'view_transactions.html', {
-        'page_obj': page_obj,  # Pass the paginated transactions
-        'categories': categories,  # Pass the categories for the dropdown
-        'category_filter': category_filter,  # Pass the selected category filter
-        'start_date': start_date,  # Pass the selected start date
-        'end_date': end_date,  # Pass the selected end date
+        'page_obj': page_obj,
+        'categories': categories,
+        'category_filter': category_filter,
+        'start_date': start_date,
+        'end_date': end_date,
     })
+
 
 def learn(request):
     return render(request, 'learn.html')
@@ -425,3 +422,113 @@ def account_settings(request):
 
     return render(request, 'account_settings.html', {'form': form})
 
+# core/views.py
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .plaid_client import client
+from .models import Transaction, UserProfile  # <-- make sure you import UserProfile
+
+# Plaid imports
+from plaid.model.link_token_create_request import LinkTokenCreateRequest
+from plaid.model.link_token_create_request_user import LinkTokenCreateRequestUser
+from plaid.model.products import Products
+from plaid.model.country_code import CountryCode
+from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest
+from plaid.model.transactions_get_request import TransactionsGetRequest
+from plaid.model.transactions_get_request_options import TransactionsGetRequestOptions
+
+import datetime
+from decimal import Decimal
+
+def create_link_token(request):
+    """Create a link_token to start Plaid Link"""
+    user = LinkTokenCreateRequestUser(client_user_id=str(request.user.id))
+
+    request_data = LinkTokenCreateRequest(
+        products=[Products('transactions')],
+        client_name='FinDice',
+        country_codes=[CountryCode('US')],
+        language='en',
+        user=user
+    )
+
+    response = client.link_token_create(request_data)
+    link_token = response['link_token']
+
+    return JsonResponse({'link_token': link_token})
+
+# core/views.py
+
+@csrf_exempt
+def exchange_public_token(request):
+    """Exchange public_token for access_token after successful Link, then immediately fetch transactions"""
+
+    data = json.loads(request.body)
+    public_token = data['public_token']
+
+    request_data = ItemPublicTokenExchangeRequest(public_token=public_token)
+    response = client.item_public_token_exchange(request_data)
+
+    access_token = response['access_token']
+    item_id = response['item_id']
+
+    # Save into user profile
+    profile = UserProfile.objects.get(user=request.user)
+    profile.bank_access_token = access_token
+    profile.save()
+
+    # Immediately fetch transactions after linking
+    fetch_transactions_logic(request.user)
+
+    return JsonResponse({'status': 'success'})
+
+
+
+def fetch_transactions_logic(user):
+    """Internal helper to fetch and save transactions for a given user"""
+
+    try:
+        profile = UserProfile.objects.get(user=user)
+    except UserProfile.DoesNotExist:
+        return
+
+    access_token = profile.bank_access_token
+    if not access_token:
+        return
+
+    end_date = datetime.datetime.now().date()
+    start_date = end_date - datetime.timedelta(days=90)
+
+    request_data = TransactionsGetRequest(
+        access_token=access_token,
+        start_date=start_date,
+        end_date=end_date,
+        options=TransactionsGetRequestOptions(count=100, offset=0)
+    )
+
+    response = client.transactions_get(request_data)
+    transactions = response['transactions']
+
+    for txn in transactions:
+        plaid_category = txn['category'][0].lower() if txn['category'] else 'other'
+        if plaid_category not in ['food', 'rent', 'entertainment']:
+            plaid_category = 'other'
+
+        txn_type = 'expense' if txn['amount'] > 0 else 'income'
+
+        Transaction.objects.create(
+            user=user,
+            amount=Decimal(str(abs(txn['amount']))),
+            type=txn_type,
+            category=plaid_category,
+            description=txn['name'],
+            date=txn['date'],
+        )
+
+
+@csrf_exempt
+def fetch_transactions(request):
+    """Public Django view to manually trigger fetching transactions if needed"""
+    fetch_transactions_logic(request.user)
+    return JsonResponse({'status': 'transactions fetch triggered'})

@@ -22,6 +22,14 @@ EMAIL_HOST_USER = 'sciencebahlouli@gmail.com'
 EMAIL_HOST_PASSWORD = 'eksv kvqu cqsj qonb'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+from plaid.configuration import Environment
+PLAID_CLIENT_ID = '680e6ffcadebe60024876a3e'
+PLAID_SECRET = 'af3ee528b2ffcf4fd3bc8d4d309693'
+PLAID_ENV = Environment.Sandbox
+PLAID_PRODUCTS = ['transactions']
+PLAID_COUNTRY_CODES = ['US']
+PLAID_REDIRECT_URI = None  # Only needed if you're doing OAuth banks
+
 
 from pathlib import Path
 import os

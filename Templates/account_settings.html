@@ -1,18 +1,73 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="content">
-    <h2>Account Settings ⚙️</h2>
-    
-    <form method="POST">
+<div class="content" style="max-width: 900px; margin: 40px auto; padding: 40px; background: #f9f9f9; border-radius: 16px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);">
+    <h2 style="text-align: center; color: #002147; margin-bottom: 30px; font-size: 32px;">Account Settings ⚙️</h2>
+
+    <form method="POST" style="display: flex; flex-direction: column; gap: 24px;">
         {% csrf_token %}
-        {{ form.as_p }}
-        
-        <button type="submit" style="background-color: #002147; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-weight: bold;">
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            {{ form.as_p }}
+        </div>
+
+        <button type="submit" style="background-color: #002147; color: white; padding: 14px 0; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; transition: background 0.3s;">
             Save Changes
         </button>
     </form>
 
-    <hr>
+    <hr style="margin: 40px 0; border: none; border-top: 1px solid #ccc;">
+
+    <div style="text-align: center;">
+        <button id="link-button" style="background-color: #00b27f; color: white; padding: 14px 30px; border: none; border-radius: 10px; font-weight: bold; font-size: 18px; cursor: pointer; transition: background 0.3s;">
+            Link Bank Account
+        </button>
+    </div>
 </div>
+
+<!-- Plaid Link script -->
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<script>
+async function startPlaidLink() {
+    const response = await fetch('/create_link_token/');
+    const data = await response.json();
+    const linkToken = data.link_token;
+
+    const handler = Plaid.create({
+        token: linkToken,
+        onSuccess: function(public_token, metadata) {
+            console.log('Public Token:', public_token);
+            fetch('/exchange_public_token/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ public_token: public_token }),
+            }).then(response => {
+                if (response.ok) {
+                    alert('Bank account linked successfully!');
+                    // Optionally refresh page or redirect
+                }
+            });
+        },
+        onExit: function(err, metadata) {
+            console.log('User exited Plaid Link', err, metadata);
+        }
+    });
+
+    handler.open();
+}
+
+document.getElementById('link-button').onclick = startPlaidLink;
+</script>
+
+<style>
+    /* Make input and select boxes stretch wider */
+    input[type="text"], input[type="email"], input[type="password"], textarea, select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+</style>
 {% endblock %}
+

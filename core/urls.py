@@ -31,6 +31,10 @@ path('set_financial_goal/', views.set_financial_goal, name='set_financial_goal')
 
 path('reports/', views.view_reports, name='view_reports'),
     path('account/', views.account_settings, name='account_settings'),
+path('create_link_token/', views.create_link_token, name='create_link_token'),
+    path('exchange_public_token/', views.exchange_public_token, name='exchange_public_token'),
+path('fetch_transactions/', views.fetch_transactions, name='fetch_transactions'),
+
     # other paths
 
 
