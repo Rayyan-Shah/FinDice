@@ -10,6 +10,7 @@ __pycache__/
 *.log
 
 # Virtual Envs
+.env
 .env/
 .venv/
 FinDice/venv/
