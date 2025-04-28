@@ -72,6 +72,22 @@ class APIConfig(models.Model):
         return f"API Key for {self.service_name}"
 
 
+class PlaidConfig(models.Model):
+    client_id = models.CharField(max_length=255)
+    secret = models.CharField(max_length=255)
+    environment = models.CharField(max_length=50, choices=[
+        ('sandbox', 'Sandbox'),
+        ('development', 'Development'),
+        ('production', 'Production'),
+    ])
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Plaid Config ({self.environment})"
+
+
+
 class SystemPrompt(models.Model):
     name = models.CharField(max_length=100)
     content = models.TextField()
