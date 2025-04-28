@@ -226,8 +226,7 @@ def add_to_savings(request):
 
 @login_required
 def download_csv(request):
-    # Get the transactions (you can add filters here if needed)
-    transactions = Transaction.objects.all()  # Or apply filters based on request.GET data
+    transactions = Transaction.objects.filter(user=request.user)
 
     # Create the HttpResponse with CSV content
     response = HttpResponse(content_type='text/csv')
@@ -240,10 +239,16 @@ def download_csv(request):
 
     # Write each transaction row
     for transaction in transactions:
-        writer.writerow([transaction.amount, transaction.get_type_display(), transaction.get_category_display(),
-                         transaction.description, transaction.date])
+        writer.writerow([
+            transaction.amount,
+            transaction.get_type_display(),
+            transaction.get_category_display() if transaction.category else '',
+            transaction.description,
+            transaction.date
+        ])
 
     return response
+
 
 
 
